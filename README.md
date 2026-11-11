@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="assets/index-hero.webp" alt="An onion-skinned ball bouncing along a dotted pencil arc above the headline: Web motion your AI can actually ship." width="880" />
+  <a href="https://yuzhang-ai.github.io/web-animation-skill/"><img src="assets/index-hero.webp" alt="An onion-skinned ball bouncing along a dotted pencil arc above the headline: Web motion your AI can actually ship." width="880" /></a>
 </p>
 
 <h1 align="center">Web Animation Skill</h1>
@@ -9,6 +9,7 @@
 </p>
 
 <p align="center">
+  <a href="https://yuzhang-ai.github.io/web-animation-skill/"><b>Live demos</b></a> ·
   <a href="#install">Install</a> ·
   <a href="#demos">Demos</a> ·
   <a href="#whats-inside">What's inside</a> ·
@@ -29,7 +30,9 @@ Works with Claude Code, Codex, Cursor, GitHub Copilot and any assistant that rea
 
 ## Demos
 
-Each demo is a single HTML file in [`demos/`](demos/), built only from patterns in the rule files. Clone the repo and serve the folder:
+**[Open the live demos →](https://yuzhang-ai.github.io/web-animation-skill/)** Click any preview below to try it in your browser.
+
+Each demo is a single HTML file in [`demos/`](demos/), built only from patterns in the rule files. To run them locally, clone the repo and serve the folder:
 
 ```bash
 python3 -m http.server 8000 --directory demos
@@ -40,27 +43,27 @@ Then open <http://localhost:8000>.
 <table>
   <tr>
     <td width="50%">
-      <a href="demos/split-text-hero.html"><img src="assets/split-text-hero.webp" alt="Headline lines rise from behind masks one after another, then a red underline draws itself under the word drawn." /></a>
+      <a href="https://yuzhang-ai.github.io/web-animation-skill/split-text-hero.html"><img src="assets/split-text-hero.webp" alt="Headline lines rise from behind masks one after another, then a red underline draws itself under the word drawn." /></a>
       <p><b>Masked line reveal</b> · GSAP SplitText + DrawSVG<br/>Lines rise from their own masks with <code>expo.out</code>, re-splitting on resize. Reduced motion gets a plain fade.</p>
     </td>
     <td width="50%">
-      <a href="demos/scroll-storyboard.html"><img src="assets/scroll-storyboard.webp" alt="A pinned row of storyboard frames slides sideways as the page scrolls while a red line inks itself through the bouncing ball in every frame." /></a>
+      <a href="https://yuzhang-ai.github.io/web-animation-skill/scroll-storyboard.html"><img src="assets/scroll-storyboard.webp" alt="A pinned row of storyboard frames slides sideways as the page scrolls while a red line inks itself through the bouncing ball in every frame." /></a>
       <p><b>Pinned storyboard</b> · ScrollTrigger + Lenis<br/>One scrubbed timeline drives the horizontal move, the inked path, the frame counter and the progress bar.</p>
     </td>
   </tr>
   <tr>
     <td width="50%">
-      <a href="demos/view-transition-gallery.html"><img src="assets/view-transition-gallery.webp" alt="Clicking a palette card makes its artwork morph into a large hero on a detail page, then morph back into the grid." /></a>
+      <a href="https://yuzhang-ai.github.io/web-animation-skill/view-transition-gallery.html"><img src="assets/view-transition-gallery.webp" alt="Clicking a palette card makes its artwork morph into a large hero on a detail page, then morph back into the grid." /></a>
       <p><b>Card becomes the page</b> · View Transitions API<br/>Shared-element morph with <code>view-transition-name</code>, no library, instant fallback.</p>
     </td>
     <td width="50%">
-      <a href="demos/spring-controls.html"><img src="assets/spring-controls.webp" alt="A toggle springs back and forth, a heart pops with a burst of particles, a copy button rolls its label, and a card tilts toward the cursor." /></a>
+      <a href="https://yuzhang-ai.github.io/web-animation-skill/spring-controls.html"><img src="assets/spring-controls.webp" alt="A toggle springs back and forth, a heart pops with a burst of particles, a copy button rolls its label, and a card tilts toward the cursor." /></a>
       <p><b>Spring controls</b> · Motion<br/>Interruptible springs via <code>press()</code> and <code>hover()</code>: spam-click the toggle and it never jumps.</p>
     </td>
   </tr>
   <tr>
     <td width="50%">
-      <a href="demos/css-only.html"><img src="assets/css-only.webp" alt="Scrolling fans a stack of flip-book sheets into an arc and inks a sentence word by word, with a red reading-progress bar at the top." /></a>
+      <a href="https://yuzhang-ai.github.io/web-animation-skill/css-only.html"><img src="assets/css-only.webp" alt="Scrolling fans a stack of flip-book sheets into an arc and inks a sentence word by word, with a red reading-progress bar at the top." /></a>
       <p><b>Zero lines of JavaScript</b> · CSS scroll timelines + <code>@starting-style</code><br/>A flip-book that fans out on scroll, words that ink in, and a popover with a real exit.</p>
     </td>
     <td width="50%" valign="top">
