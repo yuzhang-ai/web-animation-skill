@@ -1,0 +1,277 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Spring micro-interactions — Motion</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 32 32%22%3E%3Ccircle cx=%2216%22 cy=%2216%22 r=%2211%22 fill=%22%231a1d2e%22/%3E%3C/svg%3E" />
+  <link rel="stylesheet" href="shared.css" />
+  <style>
+    main {
+      min-height: 100dvh;
+      display: grid;
+      align-content: center;
+      gap: clamp(2rem, 5vw, 3.5rem);
+      padding: clamp(1.5rem, 6vw, 5rem);
+      padding-bottom: 7rem;
+      max-width: 1180px;
+      margin: 0 auto;
+    }
+    .top h1 { font-size: clamp(2rem, 5vw, 3.75rem); max-width: 16ch; }
+    .top p { margin-top: 1rem; color: var(--mute); max-width: 52ch; font-size: 1.0625rem; }
+
+    .panel {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(min(100%, 13rem), 1fr));
+      gap: 1rem;
+    }
+    @media (min-width: 1000px) { .panel { grid-template-columns: repeat(4, 1fr); } }
+
+    .cell {
+      background: #fff;
+      border-radius: 16px;
+      padding: 1.5rem;
+      min-height: 15rem;
+      display: grid;
+      grid-template-rows: 1fr auto;
+      gap: 1.25rem;
+      box-shadow: 0 1px 0 rgb(26 29 46 / 0.05), 0 20px 40px -30px rgb(26 29 46 / 0.4);
+    }
+    .cell .spot { display: grid; place-items: center; }
+    .cell h2 { font: 600 1.0625rem/1.2 var(--display); letter-spacing: -0.01em; }
+    .cell p { font-size: 0.9375rem; color: var(--mute); margin-top: 0.3rem; }
+
+    /* Toggle */
+    .toggle {
+      width: 92px;
+      height: 52px;
+      padding: 6px;
+      border-radius: 999px;
+      border: 0;
+      background: var(--paper-deep);
+      cursor: pointer;
+      display: flex;
+      transition: background-color 220ms var(--ease-out);
+    }
+    .toggle[aria-checked="true"] { background: var(--pencil); }
+    .toggle .thumb {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: #fff;
+      box-shadow: 0 2px 6px rgb(26 29 46 / 0.25);
+    }
+
+    /* Like button with particle burst */
+    .like {
+      position: relative;
+      width: 76px;
+      height: 76px;
+      border-radius: 50%;
+      border: 0;
+      background: var(--paper);
+      cursor: pointer;
+      display: grid;
+      place-items: center;
+    }
+    .like svg { width: 34px; height: 34px; overflow: visible; }
+    .like path {
+      fill: none;
+      stroke: var(--ink);
+      stroke-width: 2;
+      transition: fill 160ms, stroke 160ms;
+    }
+    .like[aria-pressed="true"] path { fill: var(--key); stroke: var(--key); }
+    .spark {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      width: 8px;
+      height: 8px;
+      margin: -4px;
+      border-radius: 50%;
+      background: var(--key);
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    /* Copy button with label swap */
+    .copy {
+      min-width: 11rem;
+      height: 52px;
+      padding: 0 1.4rem;
+      border-radius: 999px;
+      border: 0;
+      background: var(--ink);
+      color: var(--paper);
+      font-weight: 600;
+      cursor: pointer;
+      overflow: hidden;
+      position: relative;
+    }
+    .copy span {
+      display: block;
+    }
+    .copy .done {
+      position: absolute;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      transform: translateY(110%);
+    }
+
+    /* Tilt card */
+    .tilt {
+      width: 100%;
+      max-width: 13rem;
+      aspect-ratio: 4 / 3;
+      border-radius: 14px;
+      background:
+        radial-gradient(circle at var(--sx, 50%) var(--sy, 50%), rgb(255 255 255 / 0.55), transparent 55%),
+        linear-gradient(135deg, var(--pencil), #6b8fe6);
+      color: #fff;
+      display: grid;
+      place-items: end start;
+      padding: 1rem;
+      font: 600 1rem/1.2 var(--display);
+      transform-style: preserve-3d;
+      will-change: transform;
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <div class="top">
+      <h1>Feedback should feel physical.</h1>
+      <p>Each control answers your input with a spring, so a second click mid-animation picks up the current velocity instead of snapping back. Built with Motion's vanilla <code>animate</code>, <code>press</code> and <code>hover</code>.</p>
+    </div>
+
+    <div class="panel">
+      <section class="cell">
+        <div class="spot">
+          <button class="toggle" role="switch" aria-checked="false" aria-label="Notifications"><span class="thumb"></span></button>
+        </div>
+        <div><h2>Toggle</h2><p>Spring with a little bounce. Spam-click it: it never jumps.</p></div>
+      </section>
+
+      <section class="cell">
+        <div class="spot">
+          <button class="like" aria-pressed="false" aria-label="Like">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20.5s-7.5-4.6-9.2-9.3C1.6 7.8 4 4.5 7.3 4.5c2 0 3.5 1.1 4.7 2.7 1.2-1.6 2.7-2.7 4.7-2.7 3.3 0 5.7 3.3 4.5 6.7C19.5 15.9 12 20.5 12 20.5z"/></svg>
+          </button>
+        </div>
+        <div><h2>Like</h2><p>Press squashes it, release overshoots, and a burst confirms.</p></div>
+      </section>
+
+      <section class="cell">
+        <div class="spot">
+          <button class="copy" type="button"><span class="idle">Copy install command</span><span class="done" aria-hidden="true">Copied</span></button>
+        </div>
+        <div><h2>Copy</h2><p>The label rolls over, then rolls back after a moment.</p></div>
+      </section>
+
+      <section class="cell">
+        <div class="spot"><div class="tilt">Hover me</div></div>
+        <div><h2>Tilt and spotlight</h2><p>Follows a fine pointer, then springs flat when you leave.</p></div>
+      </section>
+    </div>
+  </main>
+
+  <footer class="credit">
+    <span><strong>Motion (vanilla JS)</strong>Springs, <code>press()</code> and <code>hover()</code>. Reduced motion keeps state changes, drops the movement.</span>
+    <nav><a href="index.html">All demos</a></nav>
+  </footer>
+
+  <script type="module">
+    import { animate, press, hover, spring } from "https://cdn.jsdelivr.net/npm/motion@14.12.0/+esm";
+
+    const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const snappy = reduce ? { duration: 0 } : { type: spring, duration: 0.45, bounce: 0.3 };
+    const soft = reduce ? { duration: 0 } : { type: spring, duration: 0.6, bounce: 0 };
+
+    // Toggle
+    const toggle = document.querySelector(".toggle");
+    toggle.addEventListener("click", () => {
+      const on = toggle.getAttribute("aria-checked") !== "true";
+      toggle.setAttribute("aria-checked", String(on));
+      animate(toggle.querySelector(".thumb"), { x: on ? 40 : 0 }, snappy);
+    });
+    press(toggle, (el) => {
+      animate(el.querySelector(".thumb"), { scaleX: 1.15 }, soft);
+      return () => animate(el.querySelector(".thumb"), { scaleX: 1 }, snappy);
+    });
+
+    // Like
+    const like = document.querySelector(".like");
+    const sparks = Array.from({ length: 8 }, () => {
+      const s = document.createElement("span");
+      s.className = "spark";
+      like.append(s);
+      return s;
+    });
+    press(like, (el) => {
+      animate(el, { scale: 0.86 }, soft);
+      return () => animate(el, { scale: 1 }, { ...snappy, bounce: 0.5 });
+    });
+    like.addEventListener("click", () => {
+      const on = like.getAttribute("aria-pressed") !== "true";
+      like.setAttribute("aria-pressed", String(on));
+      if (!on || reduce) return;
+      animate(like.querySelector("svg"), { scale: [0.6, 1] }, { type: spring, duration: 0.5, bounce: 0.55 });
+      sparks.forEach((s, i) => {
+        const a = (i / sparks.length) * Math.PI * 2;
+        animate(
+          s,
+          { x: [0, Math.cos(a) * 52], y: [0, Math.sin(a) * 52], opacity: [1, 0], scale: [1, 0.3] },
+          { duration: 0.55, ease: [0.16, 1, 0.3, 1] }
+        );
+      });
+    });
+
+    // Copy: one label rolls out the top while the other rolls in from below
+    const copy = document.querySelector(".copy");
+    const idle = copy.querySelector(".idle");
+    const done = copy.querySelector(".done");
+    animate(done, { y: "110%" }, { duration: 0 });
+    let resetTimer;
+    copy.addEventListener("click", () => {
+      navigator.clipboard?.writeText("npx skills add yuzhang-ai/web-animation-skill").catch(() => {});
+      copy.setAttribute("aria-label", "Copied");
+      animate(idle, { y: "-110%" }, soft);
+      animate(done, { y: "0%" }, soft);
+      clearTimeout(resetTimer);
+      resetTimer = setTimeout(() => {
+        copy.removeAttribute("aria-label");
+        animate(done, { y: "-110%" }, soft).then(() => animate(done, { y: "110%" }, { duration: 0 }));
+        animate(idle, { y: ["110%", "0%"] }, soft);
+      }, 1600);
+    });
+    press(copy, (el) => {
+      animate(el, { scale: 0.96 }, soft);
+      return () => animate(el, { scale: 1 }, snappy);
+    });
+
+    // Tilt
+    const tilt = document.querySelector(".tilt");
+    if (!reduce && matchMedia("(hover: hover) and (pointer: fine)").matches) {
+      hover(tilt, (el) => {
+        const move = (e) => {
+          const r = el.getBoundingClientRect();
+          const px = (e.clientX - r.left) / r.width;
+          const py = (e.clientY - r.top) / r.height;
+          el.style.setProperty("--sx", `${px * 100}%`);
+          el.style.setProperty("--sy", `${py * 100}%`);
+          animate(el, { rotateY: (px - 0.5) * 16, rotateX: (0.5 - py) * 16, transformPerspective: 600 }, soft);
+        };
+        el.addEventListener("pointermove", move);
+        return () => {
+          el.removeEventListener("pointermove", move);
+          animate(el, { rotateX: 0, rotateY: 0 }, snappy);
+        };
+      });
+    }
+
+    window.__demoReady = true;
+  </script>
+</body>
+</html>

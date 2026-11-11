@@ -1,0 +1,312 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Pinned storyboard — GSAP ScrollTrigger + Lenis</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 32 32%22%3E%3Ccircle cx=%2216%22 cy=%2216%22 r=%2211%22 fill=%22%231a1d2e%22/%3E%3C/svg%3E" />
+  <link rel="stylesheet" href="shared.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lenis@1.3.27/dist/lenis.css" />
+  <style>
+    .intro,
+    .outro {
+      min-height: 70dvh;
+      display: grid;
+      align-content: center;
+      gap: 1.25rem;
+      padding: clamp(1.5rem, 6vw, 6rem);
+    }
+    .intro h1,
+    .outro h2 {
+      font-size: clamp(2.25rem, 6vw, 5rem);
+      max-width: 16ch;
+    }
+    .intro p,
+    .outro p {
+      max-width: 48ch;
+      color: var(--mute);
+      font-size: 1.125rem;
+    }
+
+    /* Pinned stage */
+    .board {
+      height: 100dvh;
+      overflow: clip;
+      position: relative;
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+      grid-template-columns: minmax(0, 1fr);
+      padding: clamp(1rem, 3vw, 2rem) 0 5.5rem;
+    }
+
+    .board-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      padding: 0 clamp(1.5rem, 6vw, 6rem);
+      font-weight: 500;
+      color: var(--mute);
+    }
+    .counter {
+      font: 600 clamp(1.5rem, 3vw, 2.25rem)/1 var(--display);
+      color: var(--ink);
+      font-variant-numeric: tabular-nums;
+    }
+    .counter small {
+      font: 500 0.875rem/1 var(--text);
+      color: var(--mute);
+      margin-left: 0.4rem;
+    }
+
+    .track {
+      display: flex;
+      gap: clamp(1rem, 3vw, 2.5rem);
+      align-items: center;
+      padding: 0 clamp(1.5rem, 6vw, 6rem);
+      width: max-content;
+      position: relative;
+      justify-self: start;
+    }
+
+    /* The path a ball travels through every frame */
+    .arc {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      overflow: visible;
+      pointer-events: none;
+      z-index: 2;
+      mix-blend-mode: multiply;
+    }
+    .arc .guide {
+      fill: none;
+      stroke: var(--pencil-soft);
+      stroke-width: 2;
+      stroke-dasharray: 2 10;
+      stroke-linecap: round;
+    }
+    .arc .ink {
+      fill: none;
+      stroke: var(--key);
+      stroke-width: 3;
+      stroke-linecap: round;
+    }
+
+    .frame {
+      flex: none;
+      width: clamp(15rem, 34vw, 26rem);
+      aspect-ratio: 4 / 3;
+      background: #fff;
+      border-radius: 10px;
+      border: 1.5px solid rgb(60 111 216 / 0.18);
+      box-shadow: 0 1px 0 rgb(26 29 46 / 0.04), 0 18px 40px -24px rgb(26 29 46 / 0.35);
+      position: relative;
+      padding: 1rem 1.1rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .frame:nth-child(even) { translate: 0 2.5rem; }
+
+    .frame header {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.8125rem;
+      color: var(--mute);
+      font-variant-numeric: tabular-nums;
+    }
+    .frame .is-key {
+      color: var(--key);
+      font-weight: 600;
+    }
+    .frame h3 {
+      font-size: clamp(1.125rem, 1.8vw, 1.5rem);
+      font-weight: 600;
+      letter-spacing: -0.01em;
+    }
+    .frame p {
+      font-size: 0.9375rem;
+      color: var(--mute);
+      max-width: 32ch;
+    }
+
+    /* The ball inside each frame: squash and stretch shown as a still */
+    .ball {
+      position: absolute;
+      width: 46px;
+      height: 46px;
+      border-radius: 50%;
+      background: var(--ink);
+      right: 1.4rem;
+      top: 2.6rem;
+    }
+
+    .scrubber {
+      margin: 0 clamp(1.5rem, 6vw, 6rem);
+      height: 4px;
+      border-radius: 4px;
+      background: rgb(60 111 216 / 0.14);
+      overflow: hidden;
+    }
+    .scrubber span {
+      display: block;
+      height: 100%;
+      background: var(--pencil);
+      transform-origin: left;
+      scale: 0 1;
+    }
+
+    /* Reduced motion and small screens: a plain vertical list */
+    @media (prefers-reduced-motion: reduce), (max-width: 699px) {
+      .board { height: auto; overflow: visible; }
+      .track { width: auto; flex-direction: column; align-items: stretch; }
+      .frame { width: 100%; }
+      .frame:nth-child(even) { translate: none; }
+      .arc, .scrubber { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <section class="intro">
+    <h1>Scroll is the playhead.</h1>
+    <p>Keep scrolling. The board pins, the frames slide past, and a single red line inks itself through every pose. Scroll up and it rewinds.</p>
+  </section>
+
+  <section class="board" aria-label="Storyboard of a bouncing ball">
+    <div class="board-head">
+      <span>Bouncing ball, 6 frames</span>
+      <span class="counter" aria-live="off"><span data-frame>01</span><small>/ 06</small></span>
+    </div>
+
+    <div class="track">
+      <svg class="arc" aria-hidden="true" preserveAspectRatio="none"><path class="guide" /><path class="ink" /></svg>
+
+      <article class="frame" data-pose="0">
+        <header><span class="is-key">Key · 01</span><span>0.00s</span></header>
+        <div class="ball" style="top: 2.6rem"></div>
+        <div><h3>Anticipation</h3><p>Hold the top of the arc for a beat before anything falls.</p></div>
+      </article>
+      <article class="frame" data-pose="1">
+        <header><span>Inbetween · 02</span><span>0.12s</span></header>
+        <div class="ball" style="top: 5rem; height: 54px; width: 40px"></div>
+        <div><h3>Ease in</h3><p>It speeds up as it drops, so the spacing gets wider.</p></div>
+      </article>
+      <article class="frame" data-pose="2">
+        <header><span class="is-key">Key · 03</span><span>0.20s</span></header>
+        <div class="ball" style="top: auto; bottom: 4.4rem; height: 30px; width: 62px; border-radius: 50% / 60%"></div>
+        <div><h3>Squash</h3><p>On contact it flattens, keeping its volume.</p></div>
+      </article>
+      <article class="frame" data-pose="3">
+        <header><span>Inbetween · 04</span><span>0.28s</span></header>
+        <div class="ball" style="top: 4.6rem; height: 54px; width: 40px"></div>
+        <div><h3>Stretch</h3><p>Leaving the floor it stretches along the direction of travel.</p></div>
+      </article>
+      <article class="frame" data-pose="4">
+        <header><span>Inbetween · 05</span><span>0.40s</span></header>
+        <div class="ball" style="top: 3.2rem"></div>
+        <div><h3>Ease out</h3><p>It slows near the top, so the spacing gets tighter.</p></div>
+      </article>
+      <article class="frame" data-pose="5">
+        <header><span class="is-key">Key · 06</span><span>0.48s</span></header>
+        <div class="ball" style="top: 2.6rem"></div>
+        <div><h3>Settle</h3><p>Back where it started, a little lower each bounce.</p></div>
+      </article>
+    </div>
+
+    <div class="scrubber" aria-hidden="true"><span></span></div>
+  </section>
+
+  <section class="outro">
+    <h2>One timeline, scrubbed.</h2>
+    <p>The horizontal move, the inked path, the frame counter and the progress bar all hang off the same ScrollTrigger, so they can never drift apart.</p>
+  </section>
+
+  <footer class="credit">
+    <span><strong>GSAP ScrollTrigger + Lenis</strong>Pinned horizontal scroll with a scrubbed DrawSVG path. Small screens and reduced motion get a vertical list.</span>
+    <nav><a href="index.html">All demos</a></nav>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.15.1/dist/gsap.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.15.1/dist/ScrollTrigger.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.15.1/dist/DrawSVGPlugin.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/lenis@1.3.27/dist/lenis.min.js"></script>
+  <script>
+    gsap.registerPlugin(ScrollTrigger, DrawSVGPlugin);
+
+    const track = document.querySelector(".track");
+    const frames = [...document.querySelectorAll(".frame")];
+    const counter = document.querySelector("[data-frame]");
+
+    // Draw a curve through the centre of every ball, in track coordinates
+    function drawArc() {
+      const svg = track.querySelector(".arc");
+      const box = track.getBoundingClientRect();
+      svg.setAttribute("viewBox", `0 0 ${box.width} ${box.height}`);
+      const pts = frames.map((f) => {
+        const b = f.querySelector(".ball").getBoundingClientRect();
+        return [b.left - box.left + b.width / 2, b.top - box.top + b.height / 2];
+      });
+      let d = `M ${pts[0][0]} ${pts[0][1]}`;
+      for (let i = 1; i < pts.length; i++) {
+        const [x0, y0] = pts[i - 1];
+        const [x1, y1] = pts[i];
+        const mx = (x0 + x1) / 2;
+        d += ` C ${mx} ${y0}, ${mx} ${y1}, ${x1} ${y1}`;
+      }
+      svg.querySelectorAll("path").forEach((p) => p.setAttribute("d", d));
+    }
+
+    const mm = gsap.matchMedia();
+
+    mm.add("(prefers-reduced-motion: no-preference) and (min-width: 700px)", () => {
+      const lenis = new Lenis();
+      lenis.on("scroll", ScrollTrigger.update);
+      const raf = (time) => lenis.raf(time * 1000);
+      gsap.ticker.add(raf);
+      gsap.ticker.lagSmoothing(0);
+
+      drawArc();
+      const distance = () => track.scrollWidth - innerWidth;
+
+      const tl = gsap.timeline({
+        defaults: { ease: "none" },
+        scrollTrigger: {
+          trigger: ".board",
+          start: "top top",
+          end: () => `+=${distance() * 1.2}`,
+          pin: true,
+          scrub: 0.6,
+          invalidateOnRefresh: true,
+          onRefresh: drawArc,
+          onUpdate() {
+            // The frame nearest the viewport centre is the "current" one
+            const mid = innerWidth / 2;
+            let best = 0, bestDist = Infinity;
+            frames.forEach((f, i) => {
+              const r = f.getBoundingClientRect();
+              const d = Math.abs(r.left + r.width / 2 - mid);
+              if (d < bestDist) { bestDist = d; best = i; }
+            });
+            counter.textContent = String(best + 1).padStart(2, "0");
+          },
+        },
+      });
+
+      tl.to(track, { x: () => -distance() }, 0)
+        .from(".arc .ink", { drawSVG: "0%" }, 0)
+        .to(".scrubber span", { scale: 1 }, 0);
+
+      // Each frame tilts in slightly as it reaches the centre
+      frames.forEach((f, i) => {
+        tl.from(f, { rotate: i % 2 ? 2.5 : -2.5, duration: 0.25, ease: "power1.out" }, i / frames.length * 0.9);
+      });
+
+      return () => {
+        gsap.ticker.remove(raf);
+        lenis.destroy();
+      };
+    });
+  </script>
+</body>
+</html>

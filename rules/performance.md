@@ -74,24 +74,33 @@ window.addEventListener("scroll", () => {
 
 ## Reduced motion
 
-Always respect user's OS setting:
+Always respect the OS setting. Reduced motion means **less movement**, not **no feedback** and never **missing content**.
+
+Opt motion in, rather than stripping it out afterwards:
 
 ```css
-@media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after {
-    animation-duration: 0.01ms !important;
-    transition-duration: 0.01ms !important;
-  }
+/* Movement only when the user hasn't asked for less */
+@media (prefers-reduced-motion: no-preference) {
+  .card { transition: translate 300ms var(--ease-out); }
+  .card:hover { translate: 0 -4px; }
 }
 ```
 
 ```js
-const prefersReduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+const reduce = matchMedia("(prefers-reduced-motion: reduce)");
 
-if (prefersReduced) {
-  // Skip heavy animations
+function intro() {
+  if (reduce.matches) {
+    // Keep the state change, drop the travel
+    gsap.from(".hero > *", { opacity: 0, duration: 0.3 });
+    return;
+  }
+  gsap.from(".hero > *", { y: 40, opacity: 0, duration: 0.9, ease: "expo.out", stagger: 0.08 });
 }
+reduce.addEventListener("change", intro); // users can toggle it at any time
 ```
+
+Avoid the blanket `* { animation-duration: 0.01ms !important }` reset. It breaks CSS scroll timelines and JS code waiting on `animationend`, and an element whose entrance starts at `opacity: 0` can end up stuck invisible. More patterns in [motion-design.md](motion-design.md#reduced-motion).
 
 ## Library-specific performance
 

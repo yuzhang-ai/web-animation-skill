@@ -2,7 +2,7 @@
 
 ## When to use
 
-Simple animations that don't need JS — hover states, loading spinners, subtle looped motions, page enter effects. Zero JavaScript, zero bundle. For anything interactive or scroll-driven, use JS libraries.
+Hover and focus states, loading spinners, subtle loops, page-enter effects, dialog/popover enter **and exit**, and simple scroll-linked effects. Zero JavaScript, zero bundle. Modern CSS now covers much of what used to need a library; reach for JS when you need sequencing across elements, scrubbed multi-step timelines, physics or interruption handling.
 
 ## Basic keyframe
 
@@ -69,7 +69,67 @@ animation-play-state: paused;         /* JS can toggle to "running" */
 }
 ```
 
-`animation-timeline: view()` is the new CSS scroll-driven animation spec (Chrome 115+, Edge 115+).
+Support: Chrome/Edge 115+, Safari 26+, Firefox 159+ (MDN browser-compat-data, 2026-11-11). Wrap in `@supports (animation-timeline: view())` so older browsers show the final state. More patterns in [scroll-animations.md](scroll-animations.md).
+
+## Enter and exit for dialogs, popovers and `display: none`
+
+`@starting-style` defines the "before" state for an element's first frame, and `transition-behavior: allow-discrete` lets `display` and `overlay` wait for the exit transition. Together they animate elements that appear from `display: none`, which used to require JS. Support: Chrome 117+, Safari 17.5+, Firefox 129+.
+
+```css
+dialog,
+[popover] {
+  opacity: 0;
+  translate: 0 0.5rem;
+  transition:
+    opacity 180ms ease-in,
+    translate 180ms ease-in,
+    overlay 180ms allow-discrete,
+    display 180ms allow-discrete;
+}
+
+dialog[open],
+[popover]:popover-open {
+  opacity: 1;
+  translate: 0 0;
+  transition-duration: 280ms;
+  transition-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Must come after the open-state rule (same specificity) */
+@starting-style {
+  dialog[open],
+  [popover]:popover-open {
+    opacity: 0;
+    translate: 0 0.5rem;
+  }
+}
+
+dialog::backdrop {
+  background: rgb(0 0 0 / 0);
+  transition: background 280ms, overlay 280ms allow-discrete, display 280ms allow-discrete;
+}
+dialog[open]::backdrop { background: rgb(0 0 0 / 0.4); }
+@starting-style { dialog[open]::backdrop { background: rgb(0 0 0 / 0); } }
+```
+
+## Springs and custom curves with `linear()`
+
+`linear()` takes a list of points and interpolates between them, so it can approximate springs and bounces that `cubic-bezier()` can't. Support: Chrome 113+, Safari 17.2+, Firefox 112+.
+
+```css
+:root {
+  /* gentle spring, small overshoot */
+  --ease-spring: linear(
+    0, 0.009, 0.035 2.1%, 0.141, 0.281 6.7%, 0.723 12.9%, 0.938 16.7%,
+    1.017, 1.077, 1.121, 1.149 24.3%, 1.159, 1.163, 1.161, 1.154 29.9%,
+    1.129 32.8%, 1.051 39.6%, 1.017 43.1%, 0.991, 0.977 51%, 0.974 53.8%,
+    0.975 57.1%, 0.997 69.8%, 1.003 76.9%, 1
+  );
+}
+.toggle-thumb { transition: translate 500ms var(--ease-spring); }
+```
+
+Generate curves with a tool such as the Linear() Easing Generator rather than writing them by hand.
 
 ## Staggering with custom properties
 
@@ -90,16 +150,26 @@ animation-play-state: paused;         /* JS can toggle to "running" */
 
 ## Reduced motion (accessibility)
 
+Put movement inside a `no-preference` query so it's opt-in, and give reduced-motion users a simple fade instead:
+
 ```css
-@media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-  }
+.element { animation: fadeIn 0.3s ease-out both; }
+
+@media (prefers-reduced-motion: no-preference) {
+  .element { animation-name: slideUpFadeIn; animation-duration: 0.6s; }
 }
+```
+
+Avoid the blanket `* { animation-duration: 0.01ms !important }` reset: it also breaks scroll-driven animations and anything waiting on `animationend`. See [performance.md](performance.md#reduced-motion).
+
+## Animating to `height: auto`
+
+`interpolate-size: allow-keywords` enables transitions to and from `auto`, but it's Chromium-only (Chrome 129+). Use it as an enhancement, or animate `grid-template-rows: 0fr → 1fr`, which works everywhere:
+
+```css
+.accordion-panel { display: grid; grid-template-rows: 0fr; transition: grid-template-rows 300ms var(--ease-out); }
+.accordion-panel[data-open] { grid-template-rows: 1fr; }
+.accordion-panel > div { overflow: hidden; }
 ```
 
 ## Performance rules
@@ -134,11 +204,11 @@ animation-play-state: paused;         /* JS can toggle to "running" */
   background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
 }
 
-/* Hover scale */
+/* Hover lift — only on devices that can hover */
 .card {
-  transition: transform 0.3s ease;
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
-.card:hover {
-  transform: scale(1.05);
+@media (hover: hover) and (pointer: fine) {
+  .card:hover { transform: translateY(-4px); }
 }
 ```

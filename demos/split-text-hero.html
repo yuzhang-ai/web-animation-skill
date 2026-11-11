@@ -1,0 +1,218 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Masked line reveal — GSAP SplitText</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 32 32%22%3E%3Ccircle cx=%2216%22 cy=%2216%22 r=%2211%22 fill=%22%231a1d2e%22/%3E%3C/svg%3E" />
+  <link rel="stylesheet" href="shared.css" />
+  <style>
+    .stage {
+      min-height: 100dvh;
+      display: grid;
+      align-content: center;
+      gap: clamp(1.5rem, 4vw, 2.5rem);
+      padding: clamp(1.5rem, 6vw, 6rem);
+      padding-bottom: 6rem;
+      position: relative;
+      overflow: clip;
+    }
+
+    /* Registration marks in the corners, like a light-table frame */
+    .stage::before,
+    .stage::after {
+      content: "";
+      position: absolute;
+      width: 28px;
+      height: 28px;
+      border: 1.5px solid var(--pencil-soft);
+    }
+    .stage::before { top: 24px; left: 24px; border-right: 0; border-bottom: 0; }
+    .stage::after { right: 24px; bottom: 84px; border-left: 0; border-top: 0; }
+
+    .take {
+      font: 500 0.9375rem/1 var(--text);
+      color: var(--pencil);
+      display: flex;
+      gap: 0.75rem;
+      align-items: center;
+    }
+    .take .dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: var(--key);
+    }
+
+    .headline {
+      font-size: clamp(2.75rem, 9.2vw, 8.5rem);
+      max-width: 14ch;
+      color: var(--ink);
+    }
+
+    /* Give each line mask room below the baseline so descenders and the
+       underline aren't clipped; the negative margin keeps line spacing. */
+    .headline .line-mask {
+      padding-bottom: 0.18em;
+      margin-bottom: -0.18em;
+    }
+
+    /* The word that gets a hand-drawn underline */
+    .headline .mark {
+      position: relative;
+      white-space: nowrap;
+    }
+    .underline {
+      position: absolute;
+      left: -2%;
+      bottom: -0.06em;
+      width: 104%;
+      height: 0.24em;
+      overflow: visible;
+      pointer-events: none;
+    }
+    .underline path {
+      fill: none;
+      stroke: var(--key);
+      stroke-width: 7;
+      stroke-linecap: round;
+    }
+
+    .lede {
+      max-width: 46ch;
+      font-size: clamp(1.0625rem, 1.6vw, 1.3125rem);
+      color: var(--mute);
+    }
+
+    .actions {
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .button {
+      --pull-x: 0px;
+      --pull-y: 0px;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.6rem;
+      padding: 1rem 1.6rem;
+      border-radius: 999px;
+      border: 0;
+      background: var(--ink);
+      color: var(--paper);
+      font-weight: 600;
+      text-decoration: none;
+      cursor: pointer;
+      translate: var(--pull-x) var(--pull-y);
+      transition: translate 400ms var(--ease-out), background-color 160ms;
+    }
+    .button:hover { background: #2a2f48; }
+    .button:active { scale: 0.97; }
+
+    .ghost {
+      padding: 1rem 0.25rem;
+      background: none;
+      border: 0;
+      color: var(--ink);
+      font-weight: 500;
+      cursor: pointer;
+      text-decoration: underline;
+      text-decoration-color: var(--pencil-soft);
+      text-underline-offset: 0.3em;
+      text-decoration-thickness: 1.5px;
+    }
+
+    /* Hidden until JS takes over, but only when JS is running */
+    .js .reveal-later { visibility: hidden; }
+  </style>
+</head>
+<body>
+  <script>document.documentElement.classList.add("js");</script>
+
+  <main class="stage">
+    <p class="take reveal-later"><span class="dot" aria-hidden="true"></span>Take 01 · masked line reveal</p>
+
+    <h1 class="headline reveal-later" id="headline">
+      Motion that feels
+      <span class="mark">drawn<svg class="underline" viewBox="0 0 300 30" preserveAspectRatio="none" aria-hidden="true"><path d="M4 20 C 60 8, 120 26, 180 14 S 270 10, 296 18" /></svg></span>,
+      not generated.
+    </h1>
+
+    <p class="lede reveal-later">
+      Each line rises from behind its own mask, the key word gets a hand-drawn stroke, and the button leans toward your cursor.
+    </p>
+
+    <div class="actions reveal-later">
+      <a class="button magnetic" href="#">Read the SplitText rules</a>
+      <button class="ghost" type="button" data-replay>Replay</button>
+    </div>
+  </main>
+
+  <footer class="credit">
+    <span><strong>GSAP SplitText + DrawSVG</strong>Masked lines, staggered with expo.out. Reduced motion gets a plain fade.</span>
+    <nav><a href="index.html">All demos</a><button type="button" data-replay>Replay</button></nav>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.15.1/dist/gsap.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.15.1/dist/SplitText.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.15.1/dist/DrawSVGPlugin.min.js"></script>
+  <script>
+    gsap.registerPlugin(SplitText, DrawSVGPlugin);
+
+    const reduce = matchMedia("(prefers-reduced-motion: reduce)");
+    let intro;
+
+    function build() {
+      intro?.revert();
+      gsap.set(".reveal-later", { visibility: "visible" });
+
+      if (reduce.matches) {
+        intro = gsap.from(".reveal-later", { opacity: 0, duration: 0.4, stagger: 0.05 });
+        return;
+      }
+
+      const split = SplitText.create("#headline", {
+        type: "lines",
+        mask: "lines",
+        linesClass: "line",
+        autoSplit: true,
+        onSplit(self) {
+          const tl = gsap.timeline({ defaults: { ease: "expo.out" } });
+          tl.from(".take", { y: 12, opacity: 0, duration: 0.8 })
+            .from(self.lines, { yPercent: 115, duration: 1.15, stagger: 0.09 }, 0.1)
+            .from(".underline path", { drawSVG: "0%", duration: 0.9, ease: "power2.inOut" }, 0.75)
+            .from(".lede", { y: 16, opacity: 0, duration: 1 }, 0.7)
+            .from(".actions", { y: 16, opacity: 0, duration: 1 }, 0.82);
+          window.__intro = tl; // exposed for frame-accurate README captures
+          return tl;
+        },
+      });
+
+      intro = { revert: () => split.revert() };
+    }
+
+    document.fonts.ready.then(build);
+    document.querySelectorAll("[data-replay]").forEach((b) => b.addEventListener("click", build));
+    reduce.addEventListener("change", build);
+
+    // Magnetic pull, fine pointers only
+    if (matchMedia("(hover: hover) and (pointer: fine)").matches) {
+      document.querySelectorAll(".magnetic").forEach((el) => {
+        el.addEventListener("pointermove", (e) => {
+          const r = el.getBoundingClientRect();
+          const x = (e.clientX - (r.left + r.width / 2)) * 0.25;
+          const y = (e.clientY - (r.top + r.height / 2)) * 0.35;
+          el.style.setProperty("--pull-x", `${x}px`);
+          el.style.setProperty("--pull-y", `${y}px`);
+        });
+        el.addEventListener("pointerleave", () => {
+          el.style.setProperty("--pull-x", "0px");
+          el.style.setProperty("--pull-y", "0px");
+        });
+      });
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,262 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Zero-JS motion — scroll timelines and @starting-style</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 32 32%22%3E%3Ccircle cx=%2216%22 cy=%2216%22 r=%2211%22 fill=%22%231a1d2e%22/%3E%3C/svg%3E" />
+  <link rel="stylesheet" href="shared.css" />
+  <style>
+    /* Reading progress, driven by page scroll */
+    .progress {
+      position: fixed;
+      inset: 0 0 auto 0;
+      height: 4px;
+      background: var(--key);
+      transform-origin: left;
+      scale: 1 1;
+      z-index: 60;
+    }
+
+    header.hero {
+      min-height: 92dvh;
+      display: grid;
+      align-content: center;
+      gap: 1.25rem;
+      padding: clamp(1.5rem, 6vw, 6rem);
+    }
+    header.hero h1 { font-size: clamp(2.5rem, 7.5vw, 6.5rem); max-width: 12ch; }
+    header.hero p { color: var(--mute); max-width: 46ch; font-size: 1.125rem; }
+
+    .row {
+      padding: 0 clamp(1.5rem, 6vw, 6rem);
+      display: grid;
+      gap: clamp(4rem, 12vh, 8rem);
+      padding-bottom: 6rem;
+    }
+
+    /* Flip-book strip: frames fan out as the strip crosses the viewport */
+    .strip {
+      display: flex;
+      justify-content: center;
+      gap: 0;
+      height: 15rem;
+      perspective: 900px;
+    }
+    .sheet {
+      width: clamp(6rem, 14vw, 11rem);
+      aspect-ratio: 3 / 4;
+      margin-inline: -1.6rem;
+      border-radius: 10px;
+      background: #fff;
+      border: 1.5px solid rgb(60 111 216 / 0.2);
+      box-shadow: 0 16px 34px -22px rgb(26 29 46 / 0.45);
+      display: grid;
+      place-items: center;
+      font: 700 1.5rem/1 var(--display);
+      color: var(--pencil);
+      font-variant-numeric: tabular-nums;
+      transform-origin: 50% 120%;
+    }
+    .sheet:nth-child(4) { color: var(--key); }
+
+    .caption {
+      display: grid;
+      gap: 0.6rem;
+      max-width: 52ch;
+    }
+    .caption h2 { font-size: clamp(1.5rem, 3vw, 2.25rem); }
+    .caption p { color: var(--mute); }
+
+    /* Words that ink in one by one while their paragraph is in view */
+    .ink-in {
+      font: 600 clamp(1.5rem, 3.6vw, 2.75rem)/1.25 var(--display);
+      letter-spacing: -0.015em;
+      max-width: 22ch;
+    }
+    .ink-in span { color: var(--ink); }
+
+    /* Popover with real enter and exit, no JS */
+    .open-sheet {
+      justify-self: start;
+      padding: 1rem 1.6rem;
+      border-radius: 999px;
+      border: 0;
+      background: var(--ink);
+      color: var(--paper);
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    [popover] {
+      inset: auto clamp(1rem, 4vw, 2.5rem) clamp(5rem, 10vh, 6rem) auto;
+      width: min(26rem, calc(100% - 2rem));
+      margin: 0;
+      padding: 1.5rem;
+      border: 0;
+      border-radius: 16px;
+      background: #fff;
+      color: var(--ink);
+      box-shadow: 0 30px 60px -30px rgb(26 29 46 / 0.55), 0 0 0 1px rgb(60 111 216 / 0.12);
+
+      /* Exit state */
+      opacity: 0;
+      translate: 0 16px;
+      scale: 0.96;
+      transform-origin: bottom right;
+      transition:
+        opacity 160ms var(--ease-in),
+        translate 160ms var(--ease-in),
+        scale 160ms var(--ease-in),
+        overlay 160ms allow-discrete,
+        display 160ms allow-discrete;
+    }
+    [popover]:popover-open {
+      opacity: 1;
+      translate: 0 0;
+      scale: 1;
+      transition-duration: 380ms;
+      transition-timing-function: var(--ease-out);
+    }
+    @starting-style {
+      [popover]:popover-open {
+        opacity: 0;
+        translate: 0 16px;
+        scale: 0.96;
+      }
+    }
+    [popover] h3 { font: 600 1.25rem/1.2 var(--display); }
+    [popover] p { margin-top: 0.5rem; color: var(--mute); }
+    [popover] pre {
+      margin: 1rem 0;
+      padding: 0.9rem 1rem;
+      border-radius: 10px;
+      background: var(--paper);
+      font: 0.8125rem/1.5 var(--code);
+      overflow-x: auto;
+    }
+    [popover] button {
+      padding: 0.6rem 1.1rem;
+      border-radius: 999px;
+      border: 1.5px solid var(--ink);
+      background: none;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    /* ---- Scroll-driven motion, only where supported and wanted ---- */
+    @media (prefers-reduced-motion: no-preference) {
+      @supports (animation-timeline: view()) {
+        .progress {
+          scale: 0 1;
+          animation: grow-x linear both;
+          animation-timeline: scroll(root);
+        }
+
+        .sheet {
+          animation: fan linear both;
+          animation-timeline: view();
+          animation-range: entry 20% cover 55%;
+        }
+        .sheet:nth-child(1) { --r: -24deg; --y: 1.2rem; }
+        .sheet:nth-child(2) { --r: -14deg; --y: 0.4rem; }
+        .sheet:nth-child(3) { --r: -5deg; --y: 0rem; }
+        .sheet:nth-child(4) { --r: 5deg; --y: 0rem; }
+        .sheet:nth-child(5) { --r: 14deg; --y: 0.4rem; }
+        .sheet:nth-child(6) { --r: 24deg; --y: 1.2rem; }
+
+        .ink-in span {
+          color: var(--pencil-soft);
+          animation: ink linear both;
+          animation-timeline: --para;
+          animation-range: cover calc(var(--i) * 3% + 15%) cover calc(var(--i) * 3% + 22%);
+        }
+        .ink-in { view-timeline: --para block; }
+
+        .caption {
+          animation: rise linear both;
+          animation-timeline: view();
+          animation-range: entry 0% cover 25%;
+        }
+      }
+    }
+
+    @keyframes grow-x { to { scale: 1 1; } }
+    @keyframes fan {
+      from { rotate: 0deg; translate: 0 2rem; }
+      to { rotate: var(--r); translate: 0 var(--y); }
+    }
+    @keyframes ink { to { color: var(--ink); } }
+    @keyframes rise { from { opacity: 0; translate: 0 2rem; } }
+
+    .unsupported {
+      display: none;
+      color: var(--key);
+      font-weight: 500;
+    }
+    @supports not (animation-timeline: view()) {
+      .unsupported { display: block; }
+    }
+  </style>
+</head>
+<body>
+  <div class="progress" aria-hidden="true"></div>
+
+  <header class="hero">
+    <h1>Zero lines of JavaScript.</h1>
+    <p>Everything on this page moves with CSS alone: scroll timelines drive the progress bar, the flip-book and the inked words, and <code>@starting-style</code> gives the popover a real exit.</p>
+    <p class="unsupported">Your browser doesn't support scroll-driven animations yet, so you're seeing the static layout. That's the intended fallback.</p>
+  </header>
+
+  <div class="row">
+    <section class="caption">
+      <h2>A flip-book that fans out as you scroll.</h2>
+      <p><code>animation-timeline: view()</code> maps each sheet's rotation to its position in the viewport. Scroll back up and it closes again.</p>
+    </section>
+
+    <div class="strip" aria-hidden="true">
+      <div class="sheet">01</div><div class="sheet">02</div><div class="sheet">03</div>
+      <div class="sheet">04</div><div class="sheet">05</div><div class="sheet">06</div>
+    </div>
+
+    <p class="ink-in" id="ink"></p>
+
+    <section class="caption">
+      <h2>A popover that leaves as nicely as it arrives.</h2>
+      <p><code>transition-behavior: allow-discrete</code> keeps it in the top layer until the fade-out finishes. Open it, then press Escape or click outside.</p>
+    </section>
+
+    <button class="open-sheet" popovertarget="recipe">Show the CSS</button>
+  </div>
+
+  <div popover id="recipe">
+    <h3>The whole recipe</h3>
+    <p>Exit state on the element, open state on <code>:popover-open</code>, start state in <code>@starting-style</code>.</p>
+<pre>[popover] {
+  opacity: 0;
+  transition: opacity .16s,
+    overlay .16s allow-discrete,
+    display .16s allow-discrete;
+}
+[popover]:popover-open { opacity: 1; }
+@starting-style {
+  [popover]:popover-open { opacity: 0; }
+}</pre>
+    <button popovertarget="recipe" popovertargetaction="hide">Close</button>
+  </div>
+
+  <footer class="credit">
+    <span><strong>CSS only</strong>Scroll timelines, <code>view-timeline</code>, <code>@starting-style</code> and the Popover API.</span>
+    <nav><a href="index.html">All demos</a></nav>
+  </footer>
+
+  <!-- The only script: splitting a sentence into spans for the word-by-word ink.
+       In production, render the spans on the server. -->
+  <script>
+    const words = "Scroll position is a timeline. Treat it like one, and the browser does the animating for you.".split(" ");
+    document.getElementById("ink").innerHTML = words
+      .map((w, i) => `<span style="--i:${i}">${w}</span>`)
+      .join(" ");
+  </script>
+</body>
+</html>

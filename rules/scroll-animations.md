@@ -9,7 +9,8 @@
 | Horizontal scroll section | GSAP ScrollTrigger (pin + scrub) |
 | Progress bar (reading) | Motion `scroll` |
 | Sticky cards stacking | GSAP ScrollTrigger (pin) |
-| Simple CSS reveal | CSS animation-timeline: view() |
+| Simple CSS reveal / parallax / progress | CSS `animation-timeline: view()` / `scroll()` |
+| Smooth momentum scrolling | Lenis + ScrollTrigger |
 | React component reveal | Motion for React `whileInView` |
 
 ## GSAP — Horizontal scroll section
@@ -65,7 +66,9 @@ import { motion } from "motion/react";
 />
 ```
 
-## CSS — view() timeline (new)
+## CSS scroll-driven animations
+
+Runs off the main thread and needs no JS. Support: Chrome/Edge 115+, Safari 26+, Firefox 159+ (MDN browser-compat-data, 2026-11-11). Prefer it for simple reveals, parallax and progress indicators; use ScrollTrigger when you need pinning, callbacks or multi-element timelines.
 
 ```css
 @keyframes fade-up {
@@ -73,12 +76,37 @@ import { motion } from "motion/react";
   to   { opacity: 1; translate: 0 0; }
 }
 
-.reveal {
-  animation: fade-up linear both;
-  animation-timeline: view();
-  animation-range: entry 0% entry 80%;
+@media (prefers-reduced-motion: no-preference) {
+  @supports (animation-timeline: view()) {
+    /* Reveal as each element enters the viewport */
+    .reveal {
+      animation: fade-up linear both;
+      animation-timeline: view();
+      animation-range: entry 0% cover 30%;
+    }
+
+    /* Reading progress bar driven by page scroll */
+    .progress {
+      transform-origin: left;
+      animation: grow linear both;
+      animation-timeline: scroll(root);
+    }
+
+    /* Parallax layer: moves slower than its section */
+    .parallax-layer {
+      animation: drift linear both;
+      animation-timeline: view();
+      animation-range: cover;
+    }
+  }
 }
+@keyframes grow { from { scale: 0 1; } }
+@keyframes drift { from { translate: 0 -15%; } to { translate: 0 15%; } }
 ```
+
+`animation-range` keywords: `entry` (element entering), `exit` (leaving), `cover` (from first pixel visible to last pixel gone), `contain` (fully visible). Keep the `linear` timing function; the scroll position supplies the easing.
+
+Named timelines let one element drive another: `scroll-timeline: --gallery x` on the scroller, then `animation-timeline: --gallery` on the child (use `timeline-scope` when they aren't ancestor/descendant).
 
 ## Pattern: sticky sections stacking
 
@@ -95,6 +123,26 @@ document.querySelectorAll(".card").forEach((card, i) => {
   });
 });
 ```
+
+## Smooth scrolling with Lenis
+
+Lenis adds momentum to native scrolling (it still uses the real scrollbar, so find-in-page, anchors and accessibility keep working). Sync it with ScrollTrigger on GSAP's ticker:
+
+```js
+import Lenis from "lenis";
+import gsap from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+gsap.registerPlugin(ScrollTrigger);
+
+if (!matchMedia("(prefers-reduced-motion: reduce)").matches) {
+  const lenis = new Lenis();
+  lenis.on("scroll", ScrollTrigger.update);
+  gsap.ticker.add((time) => lenis.raf(time * 1000));
+  gsap.ticker.lagSmoothing(0);
+}
+```
+
+Also import `lenis/dist/lenis.css`. Don't add smooth scrolling to pages that are mostly text or forms, and never hijack scroll speed so content moves faster or slower than the wheel.
 
 ## Performance tip
 

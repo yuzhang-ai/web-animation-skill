@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Web Animation Skill — demos</title>
+  <meta name="description" content="Five working demos of the techniques in the web-animation skill for AI coding assistants." />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 32 32%22%3E%3Ccircle cx=%2216%22 cy=%2216%22 r=%2211%22 fill=%22%231a1d2e%22/%3E%3C/svg%3E" />
+  <link rel="stylesheet" href="shared.css" />
+  <style>
+    main {
+      max-width: 1240px;
+      margin: 0 auto;
+      padding: clamp(1.5rem, 5vw, 4rem);
+      padding-bottom: 7rem;
+    }
+
+    .hero {
+      display: grid;
+      gap: 1.5rem;
+      padding-block: clamp(2rem, 8vh, 5rem) clamp(2.5rem, 7vh, 4.5rem);
+    }
+    .hero h1 {
+      font-size: clamp(2.75rem, 8vw, 7rem);
+      max-width: 11ch;
+    }
+    .hero p {
+      max-width: 50ch;
+      color: var(--mute);
+      font-size: clamp(1.0625rem, 1.5vw, 1.25rem);
+    }
+
+    /* Onion-skinned bouncing ball: one path drives both the guide and the motion */
+    .bounce {
+      width: min(100%, 560px);
+      height: auto;
+      overflow: visible;
+      margin-bottom: 0.5rem;
+    }
+    .bounce .guide {
+      fill: none;
+      stroke: var(--pencil-soft);
+      stroke-width: 1.5;
+      stroke-dasharray: 2 8;
+      stroke-linecap: round;
+    }
+    .bounce .floor { stroke: rgb(60 111 216 / 0.25); stroke-width: 1.5; }
+    .bounce circle { fill: var(--ink); }
+    .bounce circle.ghost { fill: var(--pencil); }
+    .bounce .static { display: none; }
+    @media (prefers-reduced-motion: reduce) {
+      .bounce .moving { display: none; }
+      .bounce .static { display: inline; }
+    }
+
+    .reel {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(min(100%, 19rem), 1fr));
+      gap: 1rem;
+    }
+
+    .reel a {
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+      gap: 0.75rem;
+      min-height: 15rem;
+      padding: 1.4rem;
+      border-radius: 16px;
+      background: #fff;
+      text-decoration: none;
+      box-shadow: 0 1px 0 rgb(26 29 46 / 0.05), 0 22px 44px -32px rgb(26 29 46 / 0.45);
+      transition: translate 300ms var(--ease-out), box-shadow 300ms var(--ease-out);
+    }
+    @media (hover: hover) and (pointer: fine) {
+      .reel a:hover {
+        translate: 0 -4px;
+        box-shadow: 0 1px 0 rgb(26 29 46 / 0.05), 0 30px 54px -30px rgb(26 29 46 / 0.5);
+      }
+    }
+    .reel .take {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.875rem;
+      color: var(--pencil);
+      font-weight: 500;
+      font-variant-numeric: tabular-nums;
+    }
+    .reel .take span:last-child { color: var(--mute); font-weight: 400; }
+    .reel h2 {
+      font-size: clamp(1.375rem, 2.2vw, 1.75rem);
+      font-weight: 700;
+      align-self: end;
+    }
+    .reel p { color: var(--mute); font-size: 0.9375rem; }
+
+    .install {
+      margin-top: clamp(3rem, 8vh, 5rem);
+      display: grid;
+      gap: 0.75rem;
+      justify-items: start;
+    }
+    .install h2 { font-size: clamp(1.5rem, 3vw, 2.25rem); }
+    .install code {
+      font: 1rem/1.4 var(--code);
+      padding: 0.9rem 1.1rem;
+      border-radius: 10px;
+      background: var(--ink);
+      color: var(--paper);
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <section class="hero">
+      <svg class="bounce" viewBox="0 0 552 112" aria-hidden="true">
+        <line class="floor" x1="0" y1="108" x2="552" y2="108" />
+        <path id="arc" class="guide" d="M 16 96 C 70 -10, 150 -10, 210 96 C 255 22, 325 22, 370 96 C 400 54, 450 54, 480 96 C 495 80, 520 80, 535 96" />
+        <g class="moving">
+          <circle r="12" class="ghost" opacity="0.12"><animateMotion dur="2.4s" begin="-0.24s" repeatCount="indefinite" keyPoints="0;1" keyTimes="0;1" calcMode="spline" keySplines="0.45 0 0.55 1"><mpath href="#arc" /></animateMotion></circle>
+          <circle r="12" class="ghost" opacity="0.2"><animateMotion dur="2.4s" begin="-0.16s" repeatCount="indefinite" keyPoints="0;1" keyTimes="0;1" calcMode="spline" keySplines="0.45 0 0.55 1"><mpath href="#arc" /></animateMotion></circle>
+          <circle r="12" class="ghost" opacity="0.32"><animateMotion dur="2.4s" begin="-0.08s" repeatCount="indefinite" keyPoints="0;1" keyTimes="0;1" calcMode="spline" keySplines="0.45 0 0.55 1"><mpath href="#arc" /></animateMotion></circle>
+          <circle r="12" class="" opacity="1"><animateMotion dur="2.4s" begin="0s" repeatCount="indefinite" keyPoints="0;1" keyTimes="0;1" calcMode="spline" keySplines="0.45 0 0.55 1"><mpath href="#arc" /></animateMotion></circle>
+        </g>
+        <circle class="static" r="12" cx="110" cy="20" />
+      </svg>
+      <h1>Web motion your AI can actually ship.</h1>
+      <p>Five working demos of what the web-animation skill teaches: choosing the lightest tool, timing and easing that feel deliberate, and the reduced-motion and cleanup rules most generated code forgets.</p>
+    </section>
+
+    <ul class="reel">
+      <li><a href="split-text-hero.html">
+        <span class="take"><span>Hero sequence</span><span>GSAP SplitText</span></span>
+        <h2>Masked line reveal</h2>
+        <p>Lines rise from behind their own masks, a key word gets a hand-drawn underline, and the button leans toward your cursor.</p>
+      </a></li>
+      <li><a href="scroll-storyboard.html">
+        <span class="take"><span>Narrative scroll</span><span>ScrollTrigger + Lenis</span></span>
+        <h2>Pinned storyboard</h2>
+        <p>The board pins and slides sideways while one red line inks itself through every frame. Scroll back and it rewinds.</p>
+      </a></li>
+      <li><a href="view-transition-gallery.html">
+        <span class="take"><span>Orientation</span><span>View Transitions</span></span>
+        <h2>Card becomes the page</h2>
+        <p>A shared-element morph from grid to detail and back, with no animation library at all.</p>
+      </a></li>
+      <li><a href="spring-controls.html">
+        <span class="take"><span>Feedback</span><span>Motion</span></span>
+        <h2>Spring controls</h2>
+        <p>A toggle, a like burst, a copy button and a tilt card that keep their velocity when you interrupt them.</p>
+      </a></li>
+      <li><a href="css-only.html">
+        <span class="take"><span>Platform first</span><span>CSS only</span></span>
+        <h2>Zero lines of JavaScript</h2>
+        <p>Scroll timelines fan a flip-book and ink a sentence; <code>@starting-style</code> gives a popover a real exit.</p>
+      </a></li>
+    </ul>
+
+    <section class="install">
+      <h2>Add the skill to your assistant</h2>
+      <code>npx skills add yuzhang-ai/web-animation-skill</code>
+    </section>
+  </main>
+
+  <footer class="credit">
+    <span><strong>web-animation-skill</strong>Every demo respects <code>prefers-reduced-motion</code> and works with a keyboard.</span>
+    <nav><a href="https://github.com/yuzhang-ai/web-animation-skill">Source on GitHub</a></nav>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,261 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Shared-element morph — View Transitions API</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 32 32%22%3E%3Ccircle cx=%2216%22 cy=%2216%22 r=%2211%22 fill=%22%231a1d2e%22/%3E%3C/svg%3E" />
+  <link rel="stylesheet" href="shared.css" />
+  <style>
+    main {
+      padding: clamp(1.5rem, 5vw, 4rem);
+      padding-bottom: 7rem;
+      max-width: 1240px;
+      margin: 0 auto;
+    }
+
+    .top {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: end;
+      gap: 1.5rem;
+      margin-bottom: clamp(1.5rem, 4vw, 3rem);
+    }
+    .top h1 { font-size: clamp(2rem, 5vw, 3.75rem); max-width: 14ch; }
+    .top p { color: var(--mute); max-width: 40ch; }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(min(100%, 15rem), 1fr));
+      gap: 1rem;
+      list-style: none;
+      margin: 0;
+      padding: 0;
+    }
+
+    .swatch {
+      width: 100%;
+      display: grid;
+      grid-template-rows: 1fr auto;
+      aspect-ratio: 4 / 5;
+      padding: 0;
+      border: 0;
+      border-radius: 14px;
+      overflow: hidden;
+      cursor: pointer;
+      text-align: left;
+      background: #fff;
+      box-shadow: 0 1px 0 rgb(26 29 46 / 0.05), 0 20px 40px -28px rgb(26 29 46 / 0.4);
+      transition: translate 300ms var(--ease-out), box-shadow 300ms var(--ease-out);
+    }
+    @media (hover: hover) and (pointer: fine) {
+      .swatch:hover {
+        translate: 0 -4px;
+        box-shadow: 0 1px 0 rgb(26 29 46 / 0.05), 0 28px 50px -26px rgb(26 29 46 / 0.45);
+      }
+    }
+
+    .art {
+      position: relative;
+      background: var(--c1);
+      overflow: hidden;
+    }
+    .art::before,
+    .art::after {
+      content: "";
+      position: absolute;
+      border-radius: 50%;
+    }
+    .art::before {
+      width: 70%;
+      aspect-ratio: 1;
+      left: 12%;
+      top: 18%;
+      background: var(--c2);
+    }
+    .art::after {
+      width: 38%;
+      aspect-ratio: 1;
+      right: 10%;
+      bottom: 12%;
+      background: var(--c3);
+      mix-blend-mode: multiply;
+    }
+
+    .label {
+      padding: 0.9rem 1rem 1rem;
+      display: grid;
+      gap: 0.1rem;
+    }
+    .label b { font: 600 1.0625rem/1.2 var(--display); letter-spacing: -0.01em; }
+    .label span { font-size: 0.875rem; color: var(--mute); }
+
+    /* Detail view */
+    .detail {
+      display: grid;
+      grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+      gap: clamp(1.5rem, 4vw, 3.5rem);
+      align-items: center;
+    }
+    .detail[hidden] { display: none; }
+    .detail .art {
+      aspect-ratio: 4 / 5;
+      border-radius: 18px;
+    }
+    .detail h2 { font-size: clamp(2.25rem, 5vw, 4.25rem); }
+    .detail .copy { display: grid; gap: 1.25rem; justify-items: start; }
+    .detail p { color: var(--mute); font-size: 1.125rem; max-width: 38ch; }
+    .detail dl {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 0.4rem 1.5rem;
+      margin: 0;
+      font-variant-numeric: tabular-nums;
+    }
+    .detail dt { color: var(--mute); }
+    .detail dd { margin: 0; font-weight: 500; }
+
+    .back {
+      padding: 0.85rem 1.3rem;
+      border-radius: 999px;
+      border: 1.5px solid var(--ink);
+      background: none;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background-color 160ms, color 160ms;
+    }
+    .back:hover { background: var(--ink); color: var(--paper); }
+
+    @media (max-width: 720px) {
+      .detail { grid-template-columns: 1fr; }
+    }
+
+    /* View transition choreography */
+    ::view-transition-group(*) {
+      animation-duration: 520ms;
+      animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    ::view-transition-old(root) {
+      animation: 180ms var(--ease-in) both vt-fade-out;
+    }
+    ::view-transition-new(root) {
+      animation: 320ms 120ms var(--ease-out) both vt-fade-in;
+    }
+    ::view-transition-old(art),
+    ::view-transition-new(art) {
+      height: 100%;
+      object-fit: cover;
+    }
+    @keyframes vt-fade-out { to { opacity: 0; } }
+    @keyframes vt-fade-in { from { opacity: 0; translate: 0 12px; } }
+  </style>
+</head>
+<body>
+  <main>
+    <section id="list">
+      <div class="top">
+        <h1>Click a card. It becomes the page.</h1>
+        <p>One <code>document.startViewTransition()</code> call. The card's artwork keeps its identity and morphs into the hero, while everything else cross-fades.</p>
+      </div>
+      <ul class="grid" id="grid"></ul>
+    </section>
+
+    <section class="detail" id="detail" hidden aria-live="polite">
+      <div class="art" id="detail-art"></div>
+      <div class="copy">
+        <h2 id="detail-name"></h2>
+        <p id="detail-note"></p>
+        <dl id="detail-meta"></dl>
+        <button class="back" type="button" id="back">Back to all palettes</button>
+      </div>
+    </section>
+  </main>
+
+  <footer class="credit">
+    <span><strong>View Transitions API</strong>Shared-element morph with <code>view-transition-name</code>. No library. Falls back to an instant swap.</span>
+    <nav><a href="index.html">All demos</a></nav>
+  </footer>
+
+  <script>
+    const palettes = [
+      { name: "Blue pencil", note: "The rough pass. Animators sketch in light blue because it disappears when the final line is scanned.", c: ["#c9d8f6", "#3c6fd8", "#1a1d2e"], dur: "520ms" },
+      { name: "Keyframe red", note: "Key poses get marked in red, so the inbetweener knows which drawings are fixed.", c: ["#fbd9d6", "#e5484d", "#7a1f2b"], dur: "520ms" },
+      { name: "Cel green", note: "Painted on the back of the cel so brush strokes never show on screen.", c: ["#d5ecd9", "#2f9e66", "#103b2b"], dur: "520ms" },
+      { name: "Lamp amber", note: "The warm cast of a light-table bulb shining through six sheets of paper.", c: ["#fbe9c8", "#e69a1c", "#5a3a08"], dur: "520ms" },
+      { name: "Onion skin", note: "Earlier frames shown faintly underneath, for judging spacing at a glance.", c: ["#e8e3f4", "#8b74d1", "#2e2352"], dur: "520ms" },
+      { name: "Ink & paper", note: "The clean-up pass: one confident line, nothing else.", c: ["#f2f4f8", "#1a1d2e", "#5e6478"], dur: "520ms" },
+    ];
+
+    const grid = document.getElementById("grid");
+    const list = document.getElementById("list");
+    const detail = document.getElementById("detail");
+    const detailArt = document.getElementById("detail-art");
+    let current = null;
+
+    const paint = (el, p) => {
+      el.style.setProperty("--c1", p.c[0]);
+      el.style.setProperty("--c2", p.c[1]);
+      el.style.setProperty("--c3", p.c[2]);
+    };
+
+    palettes.forEach((p, i) => {
+      const li = document.createElement("li");
+      li.innerHTML = `<button class="swatch" type="button" data-i="${i}">
+        <span class="art"></span>
+        <span class="label"><b>${p.name}</b><span>${p.c.join(" / ")}</span></span>
+      </button>`;
+      paint(li.querySelector(".art"), p);
+      grid.append(li);
+    });
+
+    const reduce = matchMedia("(prefers-reduced-motion: reduce)");
+    function transition(update) {
+      if (!document.startViewTransition || reduce.matches) return update();
+      return document.startViewTransition(update);
+    }
+
+    function open(i) {
+      const p = palettes[i];
+      const cardArt = grid.querySelector(`[data-i="${i}"] .art`);
+      // Name only the clicked card, so the name is unique at snapshot time
+      cardArt.style.viewTransitionName = "art";
+      current = i;
+
+      transition(() => {
+        cardArt.style.viewTransitionName = "";
+        detailArt.style.viewTransitionName = "art";
+        paint(detailArt, p);
+        document.getElementById("detail-name").textContent = p.name;
+        document.getElementById("detail-note").textContent = p.note;
+        document.getElementById("detail-meta").innerHTML =
+          `<dt>Base</dt><dd>${p.c[0]}</dd><dt>Main</dt><dd>${p.c[1]}</dd><dt>Shadow</dt><dd>${p.c[2]}</dd>`;
+        list.hidden = true;
+        detail.hidden = false;
+        document.getElementById("back").focus({ preventScroll: true });
+        scrollTo(0, 0);
+      });
+    }
+
+    function close() {
+      const cardArt = grid.querySelector(`[data-i="${current}"] .art`);
+      transition(() => {
+        detailArt.style.viewTransitionName = "";
+        cardArt.style.viewTransitionName = "art";
+        detail.hidden = true;
+        list.hidden = false;
+        grid.querySelector(`[data-i="${current}"]`).focus({ preventScroll: true });
+      })?.finished?.then(() => { cardArt.style.viewTransitionName = ""; });
+    }
+
+    grid.addEventListener("click", (e) => {
+      const btn = e.target.closest(".swatch");
+      if (btn) open(Number(btn.dataset.i));
+    });
+    document.getElementById("back").addEventListener("click", close);
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape" && !detail.hidden) close();
+    });
+  </script>
+</body>
+</html>

@@ -29,14 +29,22 @@ scene.add(new THREE.AmbientLight(0x404040));
 
 camera.position.z = 5;
 
-// Animation loop
-function animate() {
-  requestAnimationFrame(animate);
-  cube.rotation.x += 0.01;
-  cube.rotation.y += 0.01;
+// Animation loop: setAnimationLoop replaces manual requestAnimationFrame
+// and is required for WebXR and the WebGPU renderer
+const clock = new THREE.Clock();
+renderer.setAnimationLoop(() => {
+  const delta = clock.getDelta(); // frame-rate independent motion
+  cube.rotation.x += delta * 0.6;
+  cube.rotation.y += delta * 0.6;
   renderer.render(scene, camera);
-}
-animate();
+});
+
+// Keep the canvas sharp and correctly sized
+addEventListener("resize", () => {
+  camera.aspect = innerWidth / innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(innerWidth, innerHeight);
+});
 ```
 
 ## React (React Three Fiber)
@@ -109,6 +117,8 @@ function Model() {
 
 - Use `frustumCulled` (default) — skip rendering off-screen objects
 - Use `instancedMesh` for 100+ identical objects
-- Lower pixel ratio: `renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))`
+- Cap pixel ratio: `renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))`
+- Stop rendering when off-screen: `renderer.setAnimationLoop(null)` (or R3F `frameloop="demand"`), restart with an IntersectionObserver
+- Reduced motion: pause auto-rotation and idle animation, keep user-driven controls
 - Use Draco-compressed `.glb` for models
 - Lazy load: `React.lazy(() => import("./Scene"))`

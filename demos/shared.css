@@ -1,0 +1,142 @@
+/*
+  Light-table design tokens shared by every demo.
+  Blue pencil = roughs and guides, red = keyframes, ink = final line.
+*/
+@import url("https://fonts.googleapis.com/css2?family=Unbounded:wght@400;600;800&family=Instrument+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap");
+
+:root {
+  --paper: #f2f4f8;
+  --paper-deep: #e4e9f2;
+  --ink: #1a1d2e;
+  --mute: #5e6478;
+  --pencil: #3c6fd8;
+  --pencil-soft: #a9c0ee;
+  --key: #e5484d;
+  --grid: rgb(60 111 216 / 0.07);
+
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in: cubic-bezier(0.7, 0, 0.84, 0);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+
+  --display: "Unbounded", system-ui, sans-serif;
+  --text: "Instrument Sans", system-ui, sans-serif;
+  --code: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+
+  color-scheme: light;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  min-height: 100dvh;
+  background-color: var(--paper);
+  background-image:
+    linear-gradient(var(--grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+  background-size: 48px 48px;
+  color: var(--ink);
+  font: 400 1rem/1.55 var(--text);
+  -webkit-font-smoothing: antialiased;
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--display);
+  font-weight: 800;
+  line-height: 1.04;
+  letter-spacing: -0.02em;
+  margin: 0;
+  text-wrap: balance;
+}
+
+p {
+  margin: 0;
+  text-wrap: pretty;
+}
+
+a {
+  color: inherit;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+}
+
+:focus-visible {
+  outline: 2px solid var(--pencil);
+  outline-offset: 3px;
+  border-radius: 6px;
+}
+
+/* Credit bar: what this demo is and how to replay it */
+.credit {
+  position: fixed;
+  inset: auto 0 0 0;
+  z-index: 50;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem 1.5rem;
+  padding: 0.85rem clamp(1rem, 4vw, 2.5rem);
+  font-size: 0.875rem;
+  color: var(--mute);
+  background: rgb(242 244 248 / 0.86);
+  backdrop-filter: blur(10px);
+  border-top: 1px solid rgb(60 111 216 / 0.14);
+}
+
+.credit strong {
+  color: var(--ink);
+  font-weight: 600;
+  margin-right: 0.5rem;
+}
+
+.credit nav {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
+
+.credit a,
+.credit button {
+  background: none;
+  border: 0;
+  padding: 0.25rem 0;
+  cursor: pointer;
+  color: var(--ink);
+  text-decoration: underline;
+  text-decoration-color: var(--pencil-soft);
+  text-underline-offset: 0.25em;
+  text-decoration-thickness: 1.5px;
+}
+
+.credit a:hover,
+.credit button:hover {
+  text-decoration-color: var(--pencil);
+}
+
+/* Captures for the README hide page chrome */
+.is-capture .credit {
+  display: none;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}

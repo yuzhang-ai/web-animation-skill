@@ -138,6 +138,78 @@ const onClick = contextSafe(() => {
 });
 ```
 
+## SplitText (line, word and character reveals)
+
+Rewritten in GSAP 3.13: half the size, built-in masking, automatic re-splitting on resize and font load, and screen-reader labels by default.
+
+```js
+import gsap from "gsap";
+import { SplitText } from "gsap/SplitText";
+gsap.registerPlugin(SplitText);
+
+document.fonts.ready.then(() => {
+  SplitText.create(".headline", {
+    type: "lines,words",
+    mask: "lines",          // wraps each line in an overflow-clipping element
+    autoSplit: true,        // re-split when width or fonts change
+    onSplit(self) {
+      // Return the animation so SplitText can revert and resync it on re-split
+      return gsap.from(self.lines, {
+        yPercent: 110,
+        duration: 1,
+        ease: "expo.out",
+        stagger: 0.08,
+      });
+    },
+  });
+});
+```
+
+Split only what you animate (`type: "lines"` is far cheaper than `"chars"`). `aria: "auto"` (default) keeps the text readable by screen readers.
+
+## Flip (layout animation)
+
+Animate between two layouts, such as a grid reflow, filtering, or moving an element to a new parent.
+
+```js
+import { Flip } from "gsap/Flip";
+gsap.registerPlugin(Flip);
+
+const state = Flip.getState(".item");     // 1. record current positions
+container.classList.toggle("is-list");    // 2. change the layout
+Flip.from(state, {                        // 3. animate from old to new
+  duration: 0.6,
+  ease: "power3.inOut",
+  stagger: 0.03,
+  absolute: true,
+  onEnter: (els) => gsap.fromTo(els, { opacity: 0, scale: 0.8 }, { opacity: 1, scale: 1 }),
+  onLeave: (els) => gsap.to(els, { opacity: 0, scale: 0.8 }),
+});
+```
+
+## Responsive and reduced-motion setups (`gsap.matchMedia`)
+
+```js
+const mm = gsap.matchMedia();
+
+mm.add({
+  isDesktop: "(min-width: 800px)",
+  reduceMotion: "(prefers-reduced-motion: reduce)",
+}, (ctx) => {
+  const { isDesktop, reduceMotion } = ctx.conditions;
+  if (reduceMotion) return; // leave everything static
+  gsap.to(".panel", {
+    xPercent: isDesktop ? -100 : 0,
+    scrollTrigger: { trigger: ".panels", pin: isDesktop, scrub: true },
+  });
+  // Everything created here is reverted automatically when the query stops matching
+});
+```
+
+## Other plugins worth knowing
+
+All free in the public `gsap` package: `DrawSVGPlugin` (stroke drawing), `MorphSVGPlugin` (shape morphing), `ScrollSmoother` (smooth scroll built on ScrollTrigger), `CustomEase`, `Observer` (wheel/touch/pointer gestures), `Draggable` + `InertiaPlugin`, `MotionPathPlugin`, `ScrambleTextPlugin`.
+
 ## Easing cheat sheet
 
 ```js
@@ -159,4 +231,6 @@ const onClick = contextSafe(() => {
 - Only animate `transform` and `opacity` when possible
 - Use `will-change` CSS sparingly (browser hint)
 - `gsap.ticker.fps(60)` to cap (not needed normally)
-- Use `ScrollTrigger.refresh()` after DOM changes
+- Use `ScrollTrigger.refresh()` after DOM changes that affect layout (images loading, content injected)
+- Create ScrollTriggers in page order (top to bottom), or set `refreshPriority`, so pin spacing is calculated correctly
+- `markers: true` while developing; remove before shipping
