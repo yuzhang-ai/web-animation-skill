@@ -98,9 +98,9 @@ if (prefersReduced) {
 | Library | Overhead | Notes |
 |---------|----------|-------|
 | CSS Keyframes | None | Best possible perf |
-| Motion One | Minimal | Uses native Web Animations API |
+| Motion (vanilla) | Minimal | Uses native Web Animations API where it can |
 | GSAP | ~0.1ms/tween | Optimized C-like JS |
-| Framer Motion | Small | Does extra work for layout animations |
+| Motion for React | Small | Does extra work for layout animations |
 | Anime.js | Light | Pure JS, no DOM abstraction |
 | D3.js | Depends | Many elements = many transitions |
 | Three.js | GPU | Offloaded to WebGL |
@@ -121,4 +121,4 @@ const heights = elements.map(el => el.offsetHeight); // all reads
 heights.forEach((h, i) => elements[i].style.height = h + 10); // all writes
 ```
 
-GSAP, Framer Motion, and Motion One handle this batching automatically.
+GSAP and Motion (vanilla and React) handle this batching automatically.

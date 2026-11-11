@@ -1,8 +1,8 @@
-# Konva — Canvas 2D (React)
+# Konva — Canvas 2D
 
 ## When to use
 
-Complex 2D canvas rendering when you need layers, event handling, and React integration. Good for drawing tools, image editors, interactive diagrams, games. For data viz specifically, use D3.js; for generic canvas, p5.js may be simpler.
+Complex 2D canvas rendering when you need layers, shapes and event handling. Works in plain JS (`konva`) or React (`react-konva`, which wraps the same API). Good for drawing tools, image editors, interactive diagrams, games. For data viz specifically, use D3.js; for generic canvas, p5.js may be simpler.
 
 ## React setup (react-konva)
 
@@ -27,7 +27,7 @@ function Canvas() {
 ```tsx
 import { useEffect, useRef } from "react";
 import { Rect } from "react-konva";
-import { Konva } from "konva";
+import Konva from "konva";
 
 function AnimatedRect() {
   const ref = useRef(null);
@@ -51,7 +51,7 @@ function AnimatedRect() {
 ```tsx
 import { useEffect, useRef } from "react";
 import { Rect } from "react-konva";
-import { Konva } from "konva";
+import Konva from "konva";
 
 function TweenRect() {
   const ref = useRef(null);
@@ -106,7 +106,9 @@ function TweenRect() {
 ## Image loading
 
 ```tsx
-import { useImage } from "react-konva";
+// npm install use-image  (separate package, not exported by react-konva)
+import { Image } from "react-konva";
+import useImage from "use-image";
 
 function KonvaImage() {
   const [image] = useImage("/photo.jpg");

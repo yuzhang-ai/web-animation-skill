@@ -7,14 +7,14 @@ A comprehensive skill for AI coding assistants (Claude Code, Codex, Cursor, GitH
 | Library | Rule File | Use Case |
 |---------|-----------|----------|
 | **GSAP** | [gsap.md](rules/gsap.md) | ScrollTrigger, timelines, stagger |
-| **Framer Motion** | [framer-motion.md](rules/framer-motion.md) | React enter/exit, layout, gestures |
-| **Motion One** | [motion-one.md](rules/motion-one.md) | Lightweight scroll/inView (~3KB) |
-| **Anime.js** | [animejs.md](rules/animejs.md) | SVG/CSS micro-animations |
+| **Motion for React** (formerly Framer Motion) | [framer-motion.md](rules/framer-motion.md) | React enter/exit, layout, gestures |
+| **Motion vanilla** (formerly Motion One) | [motion-one.md](rules/motion-one.md) | Framework-free animate, scroll, inView (~3KB mini) |
+| **Anime.js v4** | [animejs.md](rules/animejs.md) | SVG/CSS micro-animations |
 | **Rive** | [rive.md](rules/rive.md) | State machine animations |
-| **Lottie** | [lottie.md](rules/lottie.md) | AE-exported JSON playback |
+| **Lottie** | [lottie.md](rules/lottie.md) | AE-exported JSON / .lottie playback (dotLottie) |
 | **D3.js** | [d3.md](rules/d3.md) | Data visualization transitions |
 | **Flubber** | [flubber.md](rules/flubber.md) | SVG path morphing |
-| **Konva** | [konva.md](rules/konva.md) | Canvas 2D rendering (React) |
+| **Konva** | [konva.md](rules/konva.md) | Canvas 2D rendering (vanilla or React) |
 | **Three.js** | [three-js.md](rules/three-js.md) | 3D scenes, R3F, post-processing |
 | **CSS Keyframes** | [css-keyframes.md](rules/css-keyframes.md) | Pure CSS animations |
 | **Choosing** | [choosing-library.md](rules/choosing-library.md) | Decision matrix & flowchart |
@@ -34,8 +34,8 @@ SKILL.md              ← Main entry: quick starts, library picker, golden rules
 rules/
 ├── choosing-library.md   ← When to use which library
 ├── gsap.md
-├── framer-motion.md
-├── motion-one.md
+├── framer-motion.md      ← Motion for React
+├── motion-one.md         ← Motion vanilla JS
 ├── animejs.md
 ├── rive.md
 ├── lottie.md
