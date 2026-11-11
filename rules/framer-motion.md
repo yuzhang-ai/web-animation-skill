@@ -1,13 +1,15 @@
-# Framer Motion
+# Motion for React (formerly Framer Motion)
 
 ## When to use
 
 React projects needing component-level enter/exit animations, layout transitions, drag gestures, or orchestrated multi-step sequences. Best React animation DX.
 
+> Framer Motion is now published as `motion`. Install with `npm install motion` and import from `"motion/react"`. The APIs below are unchanged from Framer Motion v11; only the package and import path changed. If an existing project still has `framer-motion` installed, match its imports rather than mixing both packages.
+
 ## Basic motion component
 
 ```tsx
-import { motion } from "framer-motion";
+import { motion } from "motion/react";
 
 <motion.div
   initial={{ opacity: 0, scale: 0.8 }}
@@ -39,7 +41,7 @@ const variants = {
 ## AnimatePresence (enter/exit)
 
 ```tsx
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, motion } from "motion/react";
 
 <AnimatePresence mode="wait">
   {page === "home" && (
@@ -56,12 +58,14 @@ import { AnimatePresence, motion } from "framer-motion";
 ## Layout animations (auto-morphing)
 
 ```tsx
-// Toggle layoutId — items will morph between positions
+import { motion, LayoutGroup } from "motion/react";
+
+// Shared layoutId — elements morph between positions
 <motion.div layoutId="card" onClick={() => setExpanded(!expanded)}>
   ...
 </motion.div>
 
-// Magic layout group
+// Group siblings so their layout changes animate together
 <LayoutGroup>
   <motion.div layout />
   <motion.div layout />
@@ -84,7 +88,7 @@ import { AnimatePresence, motion } from "framer-motion";
 ## Scroll-linked
 
 ```tsx
-import { useScroll, useTransform, motion } from "framer-motion";
+import { useScroll, useTransform, motion } from "motion/react";
 
 function Parallax() {
   const { scrollYProgress } = useScroll();
@@ -95,10 +99,23 @@ function Parallax() {
 }
 ```
 
-## useInView (scroll reveal)
+## Scroll reveal
 
 ```tsx
-import { useInView } from "framer-motion";
+import { motion } from "motion/react";
+
+// Simplest: whileInView
+<motion.div
+  initial={{ opacity: 0, y: 50 }}
+  whileInView={{ opacity: 1, y: 0 }}
+  viewport={{ once: true, margin: "-100px" }}
+  transition={{ duration: 0.6 }}
+/>
+```
+
+```tsx
+// When you need the boolean elsewhere: useInView
+import { motion, useInView } from "motion/react";
 import { useRef } from "react";
 
 function Reveal() {
@@ -123,3 +140,5 @@ function Reveal() {
 - `layoutId`: shared layout animations across components
 - Exit animations require `AnimatePresence` and direct children with `key`
 - Prefer `initial`/`animate`/`exit` over CSS transitions
+- Next.js App Router: components using `motion` need `"use client"`
+- Styled Components / Emotion users on Motion 13+: if extra props leak to the DOM, use `motion.create(StyledDiv)` or pass `isValidProp` to `MotionConfig`

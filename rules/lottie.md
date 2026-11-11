@@ -2,40 +2,50 @@
 
 ## When to use
 
-Playing After Effects animations exported as JSON via Bodymovin. Best for complex vector animations designed in AE that you don't want to re-code from scratch. NOT for interactive state-driven motion (use Rive instead).
+Playing After Effects animations exported as Lottie JSON (via Bodymovin) or `.lottie` files. Best for complex vector animations designed in AE that you don't want to re-code from scratch. NOT for interactive state-driven motion (use Rive instead).
 
-## React (LottieFiles player)
+> `@lottiefiles/react-lottie-player` (the `<Player>` component) is deprecated and no longer maintained. Use `@lottiefiles/dotlottie-react` for React, and `@lottiefiles/dotlottie-web` or `lottie-web` for vanilla JS.
+
+## React (dotLottie)
 
 ```tsx
-import { Player } from "@lottiefiles/react-lottie-player";
+import { DotLottieReact } from "@lottiefiles/dotlottie-react";
 
 function Animation() {
   return (
-    <Player
-      autoplay
+    <DotLottieReact
+      src="/animation.lottie"   // .lottie or .json
       loop
-      src="https://assets.lottiefiles.com/packages/lf20_xxx.json"
+      autoplay
       style={{ width: 300, height: 300 }}
     />
   );
 }
 ```
 
-## Controls via ref
+Useful props: `speed`, `mode` (`"forward" | "reverse" | "bounce" | "reverse-bounce"`), `segment={[start, end]}`, `marker`, `playOnHover`, `backgroundColor`.
+
+## Controls via instance
 
 ```tsx
-import { Player } from "@lottiefiles/react-lottie-player";
+import { DotLottieReact } from "@lottiefiles/dotlottie-react";
 import { useRef } from "react";
 
 function Controlled() {
-  const playerRef = useRef(null);
+  const dotLottieRef = useRef(null);
 
   return (
     <>
-      <Player ref={playerRef} src="/anim.json" autoplay={false} />
-      <button onClick={() => playerRef.current?.play()}>Play</button>
-      <button onClick={() => playerRef.current?.pause()}>Pause</button>
-      <button onClick={() => playerRef.current?.stop()}>Stop</button>
+      <DotLottieReact
+        src="/anim.lottie"
+        dotLottieRefCallback={(dotLottie) => {
+          dotLottieRef.current = dotLottie;
+        }}
+      />
+      <button onClick={() => dotLottieRef.current?.play()}>Play</button>
+      <button onClick={() => dotLottieRef.current?.pause()}>Pause</button>
+      <button onClick={() => dotLottieRef.current?.stop()}>Stop</button>
+      <button onClick={() => dotLottieRef.current?.setFrame(30)}>Go to frame 30</button>
     </>
   );
 }
@@ -44,17 +54,20 @@ function Controlled() {
 ## Events / segment playback
 
 ```tsx
-<Player
-  ref={playerRef}
-  src="/anim.json"
-  onEvent={(e) => {
-    if (e === "complete") console.log("done");
+<DotLottieReact
+  src="/anim.lottie"
+  autoplay
+  segment={[30, 60]}   // play frames 30 to 60
+  dotLottieRefCallback={(dotLottie) => {
+    dotLottie?.addEventListener("complete", () => console.log("done"));
+    dotLottie?.addEventListener("frame", ({ currentFrame }) => {
+      // per-frame updates
+    });
   }}
-  // Play frames 30 to 60
-  keepLastFrame={true}
-  onLoad={() => playerRef.current?.setSeeker(30)}
 />
 ```
+
+Other events: `"load"`, `"play"`, `"pause"`, `"stop"`, `"loop"`.
 
 ## Vanilla JS (lottie-web)
 
@@ -76,6 +89,8 @@ anim.goToAndStop(30, true);
 anim.setSpeed(2); // double speed
 ```
 
+`lottie-web` plays JSON only and renders to SVG/canvas DOM. dotLottie renders to a single `<canvas>` and also plays `.lottie` files.
+
 ## Loading JSON locally
 
 ```js
@@ -93,6 +108,6 @@ lottie.loadAnimation({
 
 - Lottie is **playback only** — you can't easily modify colors, shapes, text at runtime (Lottie Expressions are limited)
 - For runtime-editable animations, look at Rive
-- Canvas renderer: better performance for complex scenes
-- SVG renderer: better quality, supports CSS interactions
-- Large Lottie files (>300KB) can block main thread — consider canvas renderer
+- Prefer `.lottie` over `.json`: it's a zipped container, smaller over the wire, and can bundle images and multiple animations
+- lottie-web canvas renderer: better performance for complex scenes; SVG renderer: sharper, supports CSS interactions
+- Large Lottie files (>300KB) can block main thread — compress to `.lottie` or use a canvas renderer

@@ -5,12 +5,12 @@
 | Pattern | Best tool |
 |---------|-----------|
 | Parallax sections | GSAP ScrollTrigger (scrub) |
-| Reveal on scroll | GSAP ScrollTrigger / Motion One inView |
+| Reveal on scroll | GSAP ScrollTrigger / Motion `inView` |
 | Horizontal scroll section | GSAP ScrollTrigger (pin + scrub) |
-| Progress bar (reading) | Motion One scroll |
+| Progress bar (reading) | Motion `scroll` |
 | Sticky cards stacking | GSAP ScrollTrigger (pin) |
 | Simple CSS reveal | CSS animation-timeline: view() |
-| React component reveal | Framer Motion useInView |
+| React component reveal | Motion for React `whileInView` |
 
 ## GSAP — Horizontal scroll section
 
@@ -43,26 +43,25 @@ gsap.from(".card", {
 });
 ```
 
-## Motion One — Progress bar
+## Motion — Progress bar
 
 ```js
-import { scroll } from "motion";
+import { animate, scroll } from "motion";
 
 scroll(
-  animate(".progress-bar", { scaleX: [0, 1] })
+  animate(".progress-bar", { scaleX: [0, 1] }, { ease: "linear" })
 );
 ```
 
-## Framer Motion — useInView
+## Motion for React — whileInView
 
 ```tsx
-const ref = useRef(null);
-const inView = useInView(ref, { once: true, margin: "-50px" });
+import { motion } from "motion/react";
 
 <motion.div
-  ref={ref}
   initial={{ opacity: 0, y: 40 }}
-  animate={inView ? { opacity: 1, y: 0 } : {}}
+  whileInView={{ opacity: 1, y: 0 }}
+  viewport={{ once: true, margin: "-50px" }}
 />
 ```
 

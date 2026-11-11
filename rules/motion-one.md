@@ -1,8 +1,14 @@
-# Motion One
+# Motion (vanilla JS, formerly Motion One)
 
 ## When to use
 
-Framework-agnostic animations with tiny bundle (~3KB). Uses native Web Animations API under the hood. Best when you want Framer-Motion-like ergonomics but without React or the bundle cost.
+Framework-agnostic animations with a small bundle. Best when you want declarative-feeling animation without React, or for scroll-linked effects that can run on the browser's native `ScrollTimeline`.
+
+> Motion One was merged into the `motion` package (the same package that now contains the former Framer Motion). Install `motion`, import vanilla APIs from `"motion"`, and React APIs from `"motion/react"` (see [framer-motion.md](framer-motion.md)). The old `timeline()` function and the `easing` option are gone.
+
+Two builds:
+- `import { animate } from "motion"` — hybrid `animate`: sequences, independent transforms (`x`, `rotate`), springs. Use this by default.
+- `import { animate } from "motion/mini"` — ~2.5KB, Web Animations API only, no sequences.
 
 ## Basic animate
 
@@ -13,93 +19,119 @@ import { animate } from "motion";
 const controls = animate(
   ".box",
   { x: 100, rotate: 45 },
-  { duration: 1, easing: "ease-out" }
+  { duration: 1, ease: "easeOut" }   // old Motion One: easing: "ease-out"
 );
 
 // Control playback
 controls.pause();
 controls.play();
-controls.finish();
+controls.complete();   // old: finish()
+controls.speed = 2;    // old: playbackRate
+controls.time = 0.5;   // old: currentTime
+await controls;        // old: controls.finished
 ```
 
 ## Keyframes
 
 ```js
-animate(".box", [0, 100, 50], { duration: 2 }); // single property
-
 animate(".box", {
   x: [0, 100, 50],
   y: [0, 50, 100],
 }, { duration: 2 });
 ```
 
-## Timeline (sequencing)
+## Sequences (replaces `timeline()`)
 
 ```js
-import { animate, timeline } from "motion";
+import { animate } from "motion";
 
-const seq = timeline([
+animate([
   [".header", { y: [-50, 0], opacity: [0, 1] }, { duration: 0.5 }],
-  [".card", { x: [-100, 0], opacity: [0, 1] }, { at: "-0.2" }],
-  [".cta", { scale: [0.5, 1] }, { at: 0.3 }],
+  [".card", { x: [-100, 0], opacity: [0, 1] }, { at: "-0.2" }], // overlap previous by 0.2s
+  [".cta", { scale: [0.5, 1] }, { at: 0.3 }],                    // absolute time in seconds
 ]);
 ```
+
+Sequences need the hybrid `animate` from `"motion"`; `motion/mini` doesn't support them.
 
 ## Scroll-linked
 
 ```js
-import { scroll } from "motion";
+import { animate, scroll } from "motion";
 
-// Drive animation with scroll position
-scroll(animate(".progress", { scaleX: [0, 1] }));
+// Drive an animation with page scroll
+scroll(animate(".progress", { scaleX: [0, 1] }, { ease: "linear" }));
 
-// Scroll-driven parallax
-scroll(animate(".parallax", { y: [0, -200] }), {
-  target: ".section",
+// Track a specific element instead of the page
+scroll(animate(".parallax", { y: [0, -200] }, { ease: "linear" }), {
+  target: document.querySelector(".section"),
+});
+
+// Callback form: progress is 0..1
+scroll((progress, info) => {
+  console.log(progress, info.y.current);
 });
 ```
+
+The callback signature changed: old Motion One passed `(info)`, current Motion passes `(progress, info)`.
 
 ## InView (scroll reveal)
 
 ```js
-import { inView } from "motion";
+import { animate, inView } from "motion";
 
 inView(".reveal", (element) => {
   animate(element, { opacity: [0, 1], y: [30, 0] }, { duration: 0.6 });
 
-  return () => animate(element, { opacity: 0, y: 30 }); // cleanup (leave)
-});
+  return () => animate(element, { opacity: 0, y: 30 }); // runs when it leaves
+}, { amount: "some" }); // old: amount: "any"
 ```
 
 ## Spring physics
 
 ```js
-import { spring } from "motion";
+import { animate } from "motion";
 
 animate(".box", { x: 200 }, { type: "spring", stiffness: 100, damping: 15 });
+
+// Duration-based spring
+animate(".box", { x: 200 }, { type: "spring", duration: 0.8, bounce: 0.3 });
+```
+
+With `motion/mini`, import `spring` and pass the function: `{ type: spring, stiffness: 300 }`.
+
+## Stagger
+
+```js
+import { animate, stagger } from "motion";
+
+animate("li", { opacity: [0, 1] }, { delay: stagger(0.1, { startDelay: 0.2 }) });
+// old option name: start → now startDelay
 ```
 
 ## React usage
 
+In React, prefer the `motion/react` components and hooks (see [framer-motion.md](framer-motion.md)). For imperative control inside a component, use `useAnimate`:
+
 ```tsx
-import { useEffect, useRef } from "react";
-import { animate } from "motion";
+import { useAnimate } from "motion/react";
+import { useEffect } from "react";
 
 function Box() {
-  const ref = useRef(null);
+  const [scope, animate] = useAnimate();
   useEffect(() => {
-    animate(ref.current, { opacity: [0, 1] }, { duration: 0.5 });
+    animate(scope.current, { opacity: [0, 1] }, { duration: 0.5 });
   }, []);
-  return <div ref={ref} />;
+  return <div ref={scope} />;
 }
 ```
 
-## Comparison with Framer Motion
+## Vanilla vs React API
 
-| | Motion One | Framer Motion |
+| | `motion` (vanilla) | `motion/react` |
 |---|---|---|
-| Size | ~3KB | ~30KB |
 | Framework | None | React |
-| API style | imperative | declarative |
-| Gestures | No | Yes (hover, tap, drag) |
-| AnimatePresence | No | Yes |
+| API style | Imperative (`animate`, `scroll`, `inView`) | Declarative components + hooks |
+| Gestures | `hover()`, `press()` helpers | `whileHover`, `whileTap`, `drag` |
+| Exit animations | Manual | `AnimatePresence` |
+| Layout animations | No | `layout`, `layoutId` |

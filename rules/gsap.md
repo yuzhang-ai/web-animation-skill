@@ -4,6 +4,8 @@
 
 GSAP operates on numeric properties of any object. Its core strength: **ScrollTrigger** for scroll-driven animations, **timeline** for sequencing, and **stagger** for staggered reveals.
 
+GSAP is now 100% free (backed by Webflow), including the formerly paid plugins: SplitText, MorphSVG, DrawSVG, ScrollSmoother, Inertia and others. They ship in the public `gsap` npm package; no Club GSAP token or private registry is needed.
+
 ## Basic tween
 
 ```js
@@ -100,22 +102,40 @@ ScrollTrigger.create({
 
 ## React usage
 
+Use the `useGSAP` hook from `@gsap/react` (`npm install @gsap/react`). It replaces the older `useEffect` + `gsap.context()` pattern and reverts animations automatically on unmount.
+
 ```tsx
-import { useRef, useEffect } from "react";
+"use client"; // Next.js App Router only
+import { useRef } from "react";
 import gsap from "gsap";
+import { useGSAP } from "@gsap/react";
 
-function Box() {
-  const ref = useRef(null);
+gsap.registerPlugin(useGSAP);
 
-  useEffect(() => {
-    const ctx = gsap.context(() => {
-      gsap.to(ref.current, { x: 100, duration: 1 });
-    });
-    return () => ctx.revert(); // cleanup
-  }, []);
+function Box({ endX }) {
+  const container = useRef(null);
 
-  return <div ref={ref} />;
+  // scope: selector strings only match descendants of container
+  useGSAP(() => {
+    gsap.to(".box", { x: endX, duration: 1 });
+  }, { scope: container, dependencies: [endX] });
+
+  return (
+    <div ref={container}>
+      <div className="box" />
+    </div>
+  );
 }
+```
+
+Animations created later (click handlers, timeouts) are not tracked unless wrapped in `contextSafe`:
+
+```tsx
+const { contextSafe } = useGSAP({ scope: container });
+
+const onClick = contextSafe(() => {
+  gsap.to(".box", { rotate: "+=180" });
+});
 ```
 
 ## Easing cheat sheet

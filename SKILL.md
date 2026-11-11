@@ -16,8 +16,8 @@ This is NOT for video rendering (use Remotion for that). This is for real-time b
 | Need | Use |
 |------|-----|
 | Scroll-triggered animations | GSAP + ScrollTrigger |
-| React component enter/exit | Framer Motion |
-| Lightweight, no framework | Motion One |
+| React component enter/exit | Motion for React (`motion/react`, formerly Framer Motion) |
+| Lightweight, no framework | Motion vanilla (`motion`, formerly Motion One) |
 | SVG/CSS micro-animations | Anime.js |
 | Interactive character animations | Rive |
 | AE-exported JSON animations | Lottie |
@@ -55,9 +55,10 @@ gsap.to(".card", {
 });
 ```
 
-### Framer Motion
+### Motion for React (formerly Framer Motion)
 ```tsx
-import { motion, AnimatePresence } from "framer-motion";
+// npm install motion
+import { motion, AnimatePresence } from "motion/react";
 
 <motion.div
   initial={{ opacity: 0, y: 20 }}
@@ -70,29 +71,28 @@ import { motion, AnimatePresence } from "framer-motion";
 </AnimatePresence>
 ```
 
-### Motion One
+### Motion vanilla JS (formerly Motion One)
 ```js
 import { animate, scroll, inView } from "motion";
 
-animate(".box", { x: 100 }, { duration: 1, easing: "ease-out" });
+animate(".box", { x: 100 }, { duration: 1, ease: "easeOut" });
 
-scroll(animate(".progress", { scaleX: [0, 1] }));
+scroll(animate(".progress", { scaleX: [0, 1] }, { ease: "linear" }));
 
 inView(".fade-in", (el) => {
   animate(el, { opacity: [0, 1] }, { duration: 0.6 });
 });
 ```
 
-### Anime.js
+### Anime.js (v4)
 ```js
-import anime from "animejs";
+import { animate } from "animejs";
 
-anime({
-  targets: ".box",
-  translateX: 250,
+animate(".box", {
+  x: 250,
   rotate: "1turn",
   duration: 800,
-  easing: "easeInOutQuad",
+  ease: "inOutQuad",
 });
 ```
 
@@ -110,12 +110,12 @@ return <RiveComponent />;
 
 ### Lottie (React)
 ```tsx
-import { Player } from "@lottiefiles/react-lottie-player";
+import { DotLottieReact } from "@lottiefiles/dotlottie-react";
 
-<Player
+<DotLottieReact
   autoplay
   loop
-  src="https://assets.lottiefiles.com/example.json"
+  src="/animation.lottie"
   style={{ width: 300 }}
 />
 ```
@@ -179,11 +179,11 @@ const renderer = new THREE.WebGLRenderer();
 For detailed patterns, load the corresponding rule file:
 
 - [rules/gsap.md](rules/gsap.md) — ScrollTrigger, timelines, stagger
-- [rules/framer-motion.md](rules/framer-motion.md) — Layout animations, gestures, variants
-- [rules/motion-one.md](rules/motion-one.md) — Scroll, inView, timeline
-- [rules/animejs.md](rules/animejs.md) — SVG, keyframes, callbacks
+- [rules/framer-motion.md](rules/framer-motion.md) — Motion for React: layout animations, gestures, variants
+- [rules/motion-one.md](rules/motion-one.md) — Motion vanilla JS: scroll, inView, sequences
+- [rules/animejs.md](rules/animejs.md) — Anime.js v4: SVG, keyframes, callbacks
 - [rules/rive.md](rules/rive.md) — State machines, input binding
-- [rules/lottie.md](rules/lottie.md) — Player controls, interactivity
+- [rules/lottie.md](rules/lottie.md) — dotLottie player controls, events
 - [rules/d3.md](rules/d3.md) — Data joins, transition chaining
 - [rules/flubber.md](rules/flubber.md) — Path morphing with multiple shapes
 - [rules/konva.md](rules/konva.md) — Canvas layers, React binding
