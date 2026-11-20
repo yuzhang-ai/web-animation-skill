@@ -4,7 +4,17 @@
 
 Playing After Effects animations exported as JSON via Bodymovin. Best for complex vector animations designed in AE that you don't want to re-code from scratch. NOT for interactive state-driven motion (use Rive instead).
 
-## React (LottieFiles player)
+## React
+
+`@lottiefiles/react-lottie-player` is no longer maintained. Use **`@lottiefiles/dotlottie-react`** (plays `.lottie` and `.json`, renders through a fast WASM renderer) or `lottie-react` (a thin wrapper over `lottie-web`).
+
+```tsx
+import { DotLottieReact } from "@lottiefiles/dotlottie-react";
+
+<DotLottieReact src="/animation.lottie" loop autoplay style={{ width: 300 }} />
+```
+
+Legacy player (existing code only):
 
 ```tsx
 import { Player } from "@lottiefiles/react-lottie-player";
@@ -96,3 +106,6 @@ lottie.loadAnimation({
 - Canvas renderer: better performance for complex scenes
 - SVG renderer: better quality, supports CSS interactions
 - Large Lottie files (>300KB) can block main thread — consider canvas renderer
+- Prefer the `.lottie` format (zipped JSON + assets, often 70–90% smaller) for production
+- `lottie_light` build (`lottie-web/build/player/lottie_light`) drops expressions support and is much smaller
+- Reduced motion: `anim.goToAndStop(lastFrame, true)` instead of autoplay — see [accessibility.md](accessibility.md)

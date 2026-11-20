@@ -69,7 +69,7 @@ animation-play-state: paused;         /* JS can toggle to "running" */
 }
 ```
 
-`animation-timeline: view()` is the new CSS scroll-driven animation spec (Chrome 115+, Edge 115+).
+`animation-timeline: view()` is the CSS scroll-driven animation spec (Chromium 115+, Safari 26+; wrap in `@supports`). More native features (View Transitions, `@starting-style`, `linear()` springs) are covered in [native-apis.md](native-apis.md).
 
 ## Staggering with custom properties
 
@@ -89,6 +89,8 @@ animation-play-state: paused;         /* JS can toggle to "running" */
 ```
 
 ## Reduced motion (accessibility)
+
+See [accessibility.md](accessibility.md) for what to reduce vs. keep. Global fallback:
 
 ```css
 @media (prefers-reduced-motion: reduce) {

@@ -2,6 +2,8 @@
 
 ## When to use
 
+> Since 2025 GSAP's **MorphSVGPlugin is free**, and Anime.js v4 ships `svg.morphTo()`. If either library is already in the project, use it instead (see [gsap.md](gsap.md), [animejs.md](animejs.md)). Flubber is still the best choice when you need a standalone interpolator (D3, canvas, custom loops) or morphs between shapes with very different point structures, including one-to-many shape splits.
+
 Morphing between SVG shapes — circle to square, one icon to another, smooth path deformation. Flubber interpolates between SVG path strings producing smooth in-between shapes.
 
 ## Basic morph

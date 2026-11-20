@@ -29,14 +29,18 @@ scene.add(new THREE.AmbientLight(0x404040));
 
 camera.position.z = 5;
 
-// Animation loop
-function animate() {
-  requestAnimationFrame(animate);
-  cube.rotation.x += 0.01;
-  cube.rotation.y += 0.01;
+// Animation loop — setAnimationLoop is required for WebXR and the WebGPU renderer
+// THREE.Clock is deprecated (r18x) → THREE.Timer
+const timer = new THREE.Timer();
+timer.connect(document);                // ignores time spent in hidden tabs
+renderer.setAnimationLoop((time) => {
+  timer.update(time);
+  const dt = timer.getDelta();          // seconds, frame-rate independent motion
+  cube.rotation.x += dt;
+  cube.rotation.y += dt * 0.5;
   renderer.render(scene, camera);
-}
-animate();
+});
+// stop: renderer.setAnimationLoop(null)
 ```
 
 ## React (React Three Fiber)
@@ -105,6 +109,27 @@ function Model() {
 }
 ```
 
+## WebGPU
+
+```js
+import * as THREE from "three/webgpu";      // WebGPURenderer + TSL node materials, falls back to WebGL2
+const renderer = new THREE.WebGPURenderer({ antialias: true });
+await renderer.init();
+```
+
+Use it for compute-heavy scenes (GPU particles, simulations). Plain WebGLRenderer is still fine for most product and hero scenes.
+
+## Animating with tween libraries
+
+Three.js objects are plain JS objects, so GSAP / Anime.js / Motion can tween them directly:
+
+```js
+gsap.to(mesh.position, { y: 1, duration: 1, ease: "power2.out" });
+gsap.to(material.uniforms.uProgress, { value: 1, duration: 2 });
+```
+
+For imported rigs and clips (`.glb` with animations), use `THREE.AnimationMixer` (or drei's `useAnimations`) and call `mixer.update(dt)` every frame.
+
 ## Performance checklist
 
 - Use `frustumCulled` (default) — skip rendering off-screen objects
@@ -112,3 +137,5 @@ function Model() {
 - Lower pixel ratio: `renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))`
 - Use Draco-compressed `.glb` for models
 - Lazy load: `React.lazy(() => import("./Scene"))`
+- Pause `setAnimationLoop` when the canvas is off-screen; render on demand (`frameloop="demand"` in R3F) for static scenes
+- Particles in 3D: [three.proton](https://github.com/drawcall/three.proton) or instanced points; see [proton.md](proton.md) for 2D

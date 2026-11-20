@@ -2,7 +2,7 @@
 
 ## When to use
 
-Complex 2D canvas rendering when you need layers, event handling, and React integration. Good for drawing tools, image editors, interactive diagrams, games. For data viz specifically, use D3.js; for generic canvas, p5.js may be simpler.
+Complex 2D canvas rendering when you need layers, event handling, and React integration (`react-konva`). Also works without React (`new Konva.Stage({ container, width, height })`). Good for drawing tools, image editors, interactive diagrams, games. For data viz specifically, use D3.js; for generic canvas, p5.js may be simpler.
 
 ## React setup (react-konva)
 
@@ -27,7 +27,7 @@ function Canvas() {
 ```tsx
 import { useEffect, useRef } from "react";
 import { Rect } from "react-konva";
-import { Konva } from "konva";
+import Konva from "konva";
 
 function AnimatedRect() {
   const ref = useRef(null);
@@ -51,7 +51,7 @@ function AnimatedRect() {
 ```tsx
 import { useEffect, useRef } from "react";
 import { Rect } from "react-konva";
-import { Konva } from "konva";
+import Konva from "konva";
 
 function TweenRect() {
   const ref = useRef(null);
@@ -68,6 +68,7 @@ function TweenRect() {
       onFinish: () => console.log("done"),
     });
     tween.play();
+    return () => tween.destroy();
   }, []);
 
   return <Rect ref={ref} x={100} y={100} width={100} height={100} fill="red" />;
@@ -106,7 +107,8 @@ function TweenRect() {
 ## Image loading
 
 ```tsx
-import { useImage } from "react-konva";
+import useImage from "use-image";          // separate package: npm i use-image
+import { Image } from "react-konva";
 
 function KonvaImage() {
   const [image] = useImage("/photo.jpg");
@@ -120,3 +122,7 @@ function KonvaImage() {
 - All interactions (click, hover) are handled by Konva's hit detection
 - Layers are independent — you can hide/show layers for performance
 - Use `<Stage>` as the root, `<Layer>` for grouping, then shapes inside
+- Keep layer count low (each `<Layer>` is its own `<canvas>`); set `listening={false}` on static shapes/layers to skip hit-graph work
+- `node.cache()` complex static groups to draw them as a bitmap
+- Selection handles: `<Transformer nodes={[shapeRef.current]} />`
+- For generative vector scenes without editor-style interaction, see [two-js.md](two-js.md)

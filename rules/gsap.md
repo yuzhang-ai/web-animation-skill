@@ -2,6 +2,8 @@
 
 ## Core concepts
 
+GSAP is **100% free, including every plugin** (SplitText, MorphSVG, DrawSVG, Flip, ScrollSmoother, Inertia, etc.) since the Webflow acquisition in 2025. They all ship in the public `gsap` npm package, so there's no private registry or Club membership anymore.
+
 GSAP operates on numeric properties of any object. Its core strength: **ScrollTrigger** for scroll-driven animations, **timeline** for sequencing, and **stagger** for staggered reveals.
 
 ## Basic tween
@@ -98,24 +100,73 @@ ScrollTrigger.create({
 });
 ```
 
-## React usage
+## React usage — `useGSAP`
+
+Use the official hook instead of `useEffect` + `gsap.context`. It scopes selectors to the container and reverts everything on unmount, which is safe under React 18/19 Strict Mode double-invocation.
 
 ```tsx
-import { useRef, useEffect } from "react";
+import { useRef } from "react";
 import gsap from "gsap";
+import { useGSAP } from "@gsap/react";
+gsap.registerPlugin(useGSAP);
 
-function Box() {
-  const ref = useRef(null);
+function Cards() {
+  const container = useRef(null);
 
-  useEffect(() => {
-    const ctx = gsap.context(() => {
-      gsap.to(ref.current, { x: 100, duration: 1 });
-    });
-    return () => ctx.revert(); // cleanup
-  }, []);
+  const { contextSafe } = useGSAP(() => {
+    gsap.from(".card", { y: 24, autoAlpha: 0, stagger: 0.05, duration: 0.5, ease: "power3.out" });
+  }, { scope: container });            // ".card" only matches inside container
 
-  return <div ref={ref} />;
+  // Event handlers created later must be wrapped so they're cleaned up too
+  const onEnter = contextSafe((e) => gsap.to(e.currentTarget, { scale: 1.03, duration: 0.2 }));
+
+  return <div ref={container}>{/* .card elements with onMouseEnter={onEnter} */}</div>;
 }
+```
+
+Use `dependencies: [value]` + `revertOnUpdate: true` to rebuild animations when props change.
+
+## Popular plugins (all free)
+
+```js
+import { SplitText } from "gsap/SplitText";
+import { MorphSVGPlugin } from "gsap/MorphSVGPlugin";
+import { DrawSVGPlugin } from "gsap/DrawSVGPlugin";
+import { Flip } from "gsap/Flip";
+gsap.registerPlugin(SplitText, MorphSVGPlugin, DrawSVGPlugin, Flip);
+
+// Text reveal by line/word/char — autoSplit re-splits on resize/font load
+SplitText.create(".headline", {
+  type: "lines,words",
+  mask: "lines",                         // each line clips its own words
+  autoSplit: true,
+  onSplit: (self) => gsap.from(self.words, { yPercent: 100, stagger: 0.04, duration: 0.6, ease: "power3.out" }),
+});
+
+// SVG shape morph (replaces Flubber for most cases)
+gsap.to("#circle", { morphSVG: "#star", duration: 1, ease: "power2.inOut" });
+
+// Line drawing
+gsap.from("path", { drawSVG: 0, duration: 1.5, stagger: 0.2 });
+
+// FLIP layout animation: record → change DOM → animate from old positions
+const state = Flip.getState(".grid-item");
+grid.classList.toggle("list-view");
+Flip.from(state, { duration: 0.6, ease: "power2.inOut", stagger: 0.02, absolute: true });
+```
+
+## Reduced motion & responsive — `gsap.matchMedia`
+
+```js
+const mm = gsap.matchMedia();
+mm.add({
+  isDesktop: "(min-width: 800px)",
+  reduce: "(prefers-reduced-motion: reduce)",
+}, (ctx) => {
+  const { isDesktop, reduce } = ctx.conditions;
+  gsap.to(".hero", { y: reduce ? 0 : isDesktop ? -200 : -80, scrollTrigger: { trigger: ".hero", scrub: true } });
+  // everything created here is auto-reverted when a condition changes
+});
 ```
 
 ## Easing cheat sheet
@@ -130,8 +181,9 @@ function Box() {
 "elastic.out(1, 0.5)"
 "bounce.out"
 
-// Custom bezier
-"cubic-bezier(0.16, 1, 0.3, 1)"  // ease-out-quint
+// Custom bezier (needs CustomEase plugin — GSAP eases don't accept "cubic-bezier()" strings)
+CustomEase.create("outQuint", "0.16, 1, 0.3, 1");
+gsap.to(".box", { x: 100, ease: "outQuint" });
 ```
 
 ## Performance notes
@@ -140,3 +192,5 @@ function Box() {
 - Use `will-change` CSS sparingly (browser hint)
 - `gsap.ticker.fps(60)` to cap (not needed normally)
 - Use `ScrollTrigger.refresh()` after DOM changes
+- Use `autoAlpha` instead of `opacity` — it also toggles `visibility: hidden` at 0 so invisible elements stop catching clicks
+- `gsap.quickTo()` for values that update every pointer move (cursor followers) — far cheaper than a new tween per event

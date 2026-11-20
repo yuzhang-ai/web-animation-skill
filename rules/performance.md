@@ -74,7 +74,7 @@ window.addEventListener("scroll", () => {
 
 ## Reduced motion
 
-Always respect user's OS setting:
+Always respect the user's OS setting. See [accessibility.md](accessibility.md) for per-library patterns.
 
 ```css
 @media (prefers-reduced-motion: reduce) {
@@ -98,14 +98,27 @@ if (prefersReduced) {
 | Library | Overhead | Notes |
 |---------|----------|-------|
 | CSS Keyframes | None | Best possible perf |
-| Motion One | Minimal | Uses native Web Animations API |
+| Motion | Minimal | Hardware-accelerated via WAAPI where possible |
+| Native WAAPI / CSS | None | Same engine as CSS animations |
 | GSAP | ~0.1ms/tween | Optimized C-like JS |
-| Framer Motion | Small | Does extra work for layout animations |
 | Anime.js | Light | Pure JS, no DOM abstraction |
 | D3.js | Depends | Many elements = many transitions |
 | Three.js | GPU | Offloaded to WebGL |
 | Konva | Canvas | Single canvas, good for many elements |
 | Lottie | Varies | SVG = more DOM nodes; Canvas = better for complex |
+| Two.js | Renderer-dependent | SVG for < few hundred shapes, switch to canvas/webgl beyond |
+| Proton | CPU per particle | Cap rate × life; WebGLRenderer for thousands |
+
+## Pause what nobody sees
+
+```js
+// Stop rAF loops (Three.js, Proton, Two.js, canvas) when off-screen or tab hidden
+const io = new IntersectionObserver(([e]) => (e.isIntersecting ? start() : stop()));
+io.observe(canvas);
+document.addEventListener("visibilitychange", () => (document.hidden ? stop() : start()));
+```
+
+`content-visibility: auto` on long sections lets the browser skip rendering work for off-screen content.
 
 ## Batch DOM reads/writes
 
@@ -121,4 +134,4 @@ const heights = elements.map(el => el.offsetHeight); // all reads
 heights.forEach((h, i) => elements[i].style.height = h + 10); // all writes
 ```
 
-GSAP, Framer Motion, and Motion One handle this batching automatically.
+GSAP and Motion handle this batching automatically.

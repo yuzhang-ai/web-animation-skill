@@ -5,12 +5,13 @@
 | Pattern | Best tool |
 |---------|-----------|
 | Parallax sections | GSAP ScrollTrigger (scrub) |
-| Reveal on scroll | GSAP ScrollTrigger / Motion One inView |
+| Reveal on scroll | CSS `view()` timeline / Motion `inView` / GSAP ScrollTrigger |
 | Horizontal scroll section | GSAP ScrollTrigger (pin + scrub) |
-| Progress bar (reading) | Motion One scroll |
+| Progress bar (reading) | CSS `scroll()` timeline / Motion `scroll` |
 | Sticky cards stacking | GSAP ScrollTrigger (pin) |
 | Simple CSS reveal | CSS animation-timeline: view() |
-| React component reveal | Framer Motion useInView |
+| React component reveal | Motion `whileInView` |
+| Scroll-synced timeline (no pinning) | Anime.js `onScroll({ sync: true })` |
 
 ## GSAP — Horizontal scroll section
 
@@ -43,26 +44,25 @@ gsap.from(".card", {
 });
 ```
 
-## Motion One — Progress bar
+## Motion — Progress bar
 
 ```js
-import { scroll } from "motion";
+import { animate, scroll } from "motion";
 
 scroll(
   animate(".progress-bar", { scaleX: [0, 1] })
 );
 ```
 
-## Framer Motion — useInView
+## Motion (React) — whileInView
 
 ```tsx
-const ref = useRef(null);
-const inView = useInView(ref, { once: true, margin: "-50px" });
+import { motion } from "motion/react";
 
 <motion.div
-  ref={ref}
   initial={{ opacity: 0, y: 40 }}
-  animate={inView ? { opacity: 1, y: 0 } : {}}
+  whileInView={{ opacity: 1, y: 0 }}
+  viewport={{ once: true, margin: "-50px" }}
 />
 ```
 
@@ -96,6 +96,10 @@ document.querySelectorAll(".card").forEach((card, i) => {
   });
 });
 ```
+
+## Accessibility
+
+Scroll-scrubbed parallax and pinned "scroll-jacking" sections are the most common vestibular triggers. Disable them under `prefers-reduced-motion` (GSAP: `gsap.matchMedia`; see [accessibility.md](accessibility.md)), and never hijack native scroll speed.
 
 ## Performance tip
 

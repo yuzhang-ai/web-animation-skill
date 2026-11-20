@@ -1,25 +1,19 @@
 # Web Animation Skill
 
-A comprehensive skill for AI coding assistants (Claude Code, Codex, Cursor, GitHub Copilot, etc.) covering best practices for interactive web animations across 12+ libraries.
+A skill that teaches AI coding agents (Claude Code, Codex, Cursor, GitHub Copilot, …) to build **real-time web motion**: picking the lightest tool, writing current APIs, respecting reduced motion, and checking the result frame by frame instead of guessing.
 
-## What's covered
-
-| Library | Rule File | Use Case |
-|---------|-----------|----------|
-| **GSAP** | [gsap.md](rules/gsap.md) | ScrollTrigger, timelines, stagger |
-| **Framer Motion** | [framer-motion.md](rules/framer-motion.md) | React enter/exit, layout, gestures |
-| **Motion One** | [motion-one.md](rules/motion-one.md) | Lightweight scroll/inView (~3KB) |
-| **Anime.js** | [animejs.md](rules/animejs.md) | SVG/CSS micro-animations |
-| **Rive** | [rive.md](rules/rive.md) | State machine animations |
-| **Lottie** | [lottie.md](rules/lottie.md) | AE-exported JSON playback |
-| **D3.js** | [d3.md](rules/d3.md) | Data visualization transitions |
-| **Flubber** | [flubber.md](rules/flubber.md) | SVG path morphing |
-| **Konva** | [konva.md](rules/konva.md) | Canvas 2D rendering (React) |
-| **Three.js** | [three-js.md](rules/three-js.md) | 3D scenes, R3F, post-processing |
-| **CSS Keyframes** | [css-keyframes.md](rules/css-keyframes.md) | Pure CSS animations |
-| **Choosing** | [choosing-library.md](rules/choosing-library.md) | Decision matrix & flowchart |
-| **Scroll** | [scroll-animations.md](rules/scroll-animations.md) | Scroll-driven patterns |
-| **Performance** | [performance.md](rules/performance.md) | 60fps, will-change, profiling |
+<p align="center">
+  <a href="https://yuzhang-ai.github.io/web-animation-skill/">
+    <img src="docs/media/hero.jpg" alt="Showcase hero: the title 'Motion, verified.' over a swirling flow field of 2,600 coloured particles" width="820">
+  </a>
+</p>
+<p align="center">
+  <a href="https://yuzhang-ai.github.io/web-animation-skill/">
+    <img src="docs/media/demo.gif" alt="Live demo grid: GSAP MotionPath comet, SplitText 3D flips, Anime.js ripple grid, Motion springs with goo filter, View Transitions, CSS @property ring" width="720">
+  </a>
+  <br>
+  <a href="https://yuzhang-ai.github.io/web-animation-skill/"><b>Live showcase</b></a> · <a href="docs/media/demo.mp4">Full interactive tour (MP4, 26 s)</a> · every card runs the library its rule describes
+</p>
 
 ## Install
 
@@ -27,35 +21,72 @@ A comprehensive skill for AI coding assistants (Claude Code, Codex, Cursor, GitH
 npx skills add yuzhang-ai/web-animation-skill
 ```
 
-## Structure
+Or copy `SKILL.md` and `rules/` into your agent's skills folder (for example `.claude/skills/web-animation/`).
+
+## How it works
+
+`SKILL.md` is the entry point. It gives the agent the workflow, a quick picker, the non-negotiables, and motion tokens. The agent then loads only the rule file it needs.
 
 ```
-SKILL.md              ← Main entry: quick starts, library picker, golden rules
-rules/
-├── choosing-library.md   ← When to use which library
-├── gsap.md
-├── framer-motion.md
-├── motion-one.md
-├── animejs.md
-├── rive.md
-├── lottie.md
-├── d3.md
-├── flubber.md
-├── konva.md
-├── three-js.md
-├── css-keyframes.md
-├── scroll-animations.md
-└── performance.md
+Brief    → one-line motion spec per element (+ its reduced-motion version)
+Build    → lightest tool that does the job: CSS / native first, then a library
+Animate  → transform & opacity, shared duration/easing tokens, interruptible
+Refine   → capture frames at key timestamps and look at them; check perf
+Render   → lazy-load, pause off-screen, export GIF/MP4 when asked
 ```
 
-## Golden rule
+## Rules
 
-> Prefer `transform` and `opacity` for animation performance. Avoid animating `width`, `height`, `top`, `left` — they trigger layout reflow.
+| Area | Rule | Covers |
+|---|---|---|
+| **Process** | [workflow](rules/workflow.md) | Motion spec, tokens, timing rules of thumb, frame-by-frame verification with Playwright |
+| | [choosing-library](rules/choosing-library.md) | Decision flow and matrix across native APIs and 11 libraries |
+| | [accessibility](rules/accessibility.md) | `prefers-reduced-motion` per library, pause controls, WCAG 2.2.2 / 2.3.1 |
+| | [performance](rules/performance.md) | Compositor-only properties, layout thrash, pausing off-screen loops |
+| | [export](rules/export.md) | Deterministic capture → ffmpeg, MediaRecorder, gifenc |
+| **Native** | [native-apis](rules/native-apis.md) | WAAPI, View Transitions, scroll-driven animations, `@starting-style`, `linear()` springs |
+| | [css-keyframes](rules/css-keyframes.md) | `@keyframes`, staggering with custom properties |
+| | [scroll-animations](rules/scroll-animations.md) | Scroll patterns across CSS, Motion, GSAP, Anime.js |
+| **DOM / SVG** | [motion](rules/motion.md) | Motion (formerly Framer Motion + Motion One): React and vanilla |
+| | [gsap](rules/gsap.md) | Timelines, ScrollTrigger, `useGSAP`, SplitText, MorphSVG, Flip (all free) |
+| | [animejs](rules/animejs.md) | Anime.js **v4** API: stagger grids, `svg` module, `onScroll`, `createScope` |
+| | [flubber](rules/flubber.md) | Standalone path morphing |
+| | [d3](rules/d3.md) | Data joins and transition chaining |
+| **Asset playback** | [lottie](rules/lottie.md) | lottie-web, dotLottie, `.lottie` format |
+| | [rive](rules/rive.md) | State machines and inputs |
+| **Canvas / WebGL** | [konva](rules/konva.md) | Interactive canvas: layers, drag, Transformer |
+| | [two-js](rules/two-js.md) | Generative 2D vector scenes (SVG ⇄ canvas ⇄ WebGL) |
+| | [proton](rules/proton.md) | Particle emitters, initializers, behaviours |
+| | [three-js](rules/three-js.md) | Scenes, R3F, WebGPU, tweening 3D objects |
 
-## Related
+## What's new in v2
 
-- [Remotion Best Practices](https://github.com/remotion-dev/skills) — video rendering in React
-- This skill focuses on **real-time web interactivity**, not video rendering.
+- **Current APIs.** These snippets would break if written the old way, so the skill now uses:
+  - `framer-motion` → `motion` (`motion/react`), with Motion One merged in
+  - Anime.js v4 rewrite
+  - GSAP plugins now free, plus `useGSAP`
+  - `@lottiefiles/dotlottie-react`
+  - `THREE.Timer` and `setAnimationLoop`
+- **Workflow first.** Agents can't watch animations, so the skill tells them how to verify one with captured frames.
+- **New rules:** workflow, accessibility, native APIs, export, Proton, Two.js.
+- **Showcase page** ([`docs/index.html`](docs/index.html)): a single static file that loads every library from jsDelivr and honours reduced motion. Highlights:
+  - a flow-field hero with 2,600 particles
+  - a noise-displaced iridescent shader sphere
+  - spring chains fused by an SVG goo filter
+  - a draggable verlet rope
+  - Flubber one-to-many morphs
+  - firework emitters
+  - a CSS `view()` 3D drum picker
+
+## Showcase page
+
+`docs/index.html` is self-contained. Open it locally or serve the `docs/` folder with GitHub Pages (**Settings → Pages → Deploy from branch → `main` / `/docs`**).
+
+Regenerate the README media by recording the page (the deterministic method is in [export.md](rules/export.md)) and encoding it with ffmpeg.
+
+## Scope
+
+This skill is for **real-time browser animation**. For rendering videos as the final product, use [Remotion](https://github.com/remotion-dev/skills) or [Motion Canvas](https://github.com/motion-canvas/motion-canvas).
 
 ## License
 
