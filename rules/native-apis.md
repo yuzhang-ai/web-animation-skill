@@ -9,6 +9,7 @@ By late 2025, browsers natively cover much of what used to need a library. Reach
 | Scroll-linked / scroll-reveal | CSS `animation-timeline: scroll()` / `view()` | Chromium, Safari 26+; Firefox behind a flag → feature-detect |
 | Animate on insert (from `display: none`) | `@starting-style` + `transition-behavior: allow-discrete` | All major browsers |
 | Spring / bounce curves in CSS | `linear()` easing | All browsers |
+| Animate gradients, counters, any custom property | `@property` (typed custom properties) | All major browsers |
 | Animate to `height: auto` | `interpolate-size: allow-keywords` / `calc-size()` | Chromium only → progressive enhancement |
 
 ## Web Animations API (WAAPI)
@@ -74,6 +75,21 @@ Rules:
 - For lists, set names dynamically: `el.style.viewTransitionName = \`item-${id}\``. Newer browsers also accept `view-transition-name: match-element`.
 - In React, update state inside the callback with `flushSync`, or use React's `<ViewTransition>` where available.
 
+Pitfalls that show up as console errors:
+
+```js
+const vt = document.startViewTransition(update);
+// When a transition is skipped (duplicate name, hidden tab, a second transition
+// started), `ready` and `finished` reject. Unhandled, that is
+// "Uncaught (in promise) AbortError: Transition was aborted".
+vt.ready.catch(() => {});
+vt.finished.catch(() => {});
+```
+
+- **`hidden` loses to your own `display`.** `.panel { display: grid }` beats the UA rule for `[hidden]`, so the "hidden" copy still renders and its `view-transition-name` duplicates the visible one. Add `[hidden] { display: none !important; }`, or clear the name on the element you hide.
+- **Don't run one while the page is scrolling.** Snapshots are taken at capture time, and scrolling mid-transition makes them drift. Skip the transition (call `update()` directly) if a scroll happened in the last ~500ms.
+- **The overlay eats clicks.** During the transition the pseudo-element tree covers the page. If the transition is decorative, add `::view-transition { pointer-events: none; }`.
+
 ### Cross-document (MPA, multi-page sites)
 
 ```css
@@ -109,6 +125,7 @@ That's all you need for a crossfade between same-origin page loads. Add matching
 - Always wrap in `@supports` and make sure content is visible without it.
 - Progress comes from scroll, so leave out a time duration. Use `linear` easing so scroll maps 1:1 to progress, and `both` so the start and end states hold outside the range.
 - Put `animation-timeline` **after** the `animation` shorthand. The shorthand resets it.
+- `view()` tracks the **nearest scroll container**, and `overflow: hidden` makes one. A wrapper with `overflow: hidden` (often added to stop horizontal overflow) freezes every `view()` animation inside it. Use `overflow: clip` instead: it clips without creating a scroll container.
 - Use a named timeline to drive one element from another's scroll: `scroll-timeline: --gallery x;` on the scroller, `animation-timeline: --gallery;` on the target.
 - These run off the main thread when animating transform/opacity, which is smoother than JS scroll listeners.
 
@@ -132,6 +149,32 @@ dialog[open] { opacity: 1; scale: 1; }
 dialog { opacity: 0; scale: 0.96; transition: opacity .2s, scale .2s, overlay .2s allow-discrete, display .2s allow-discrete; }
 @starting-style { dialog[open] { opacity: 0; scale: 0.96; } }
 ```
+
+## Animating custom properties with `@property`
+
+A plain custom property is a string, so `--angle: 0deg → 360deg` jumps. Registering it with a type makes it interpolate, which unlocks animating things CSS can't animate directly: gradient angles and stops, counters, and anything computed from the variable. Supported in all major browsers.
+
+```css
+@property --angle { syntax: "<angle>"; inherits: false; initial-value: 0deg; }
+
+/* Rotating conic border: the gradient itself can't animate, but its angle can */
+.ring {
+  background: conic-gradient(from var(--angle), #d7ff5a, #9a8cff, #5fd4ff, #d7ff5a);
+  animation: spin 4s linear infinite;
+}
+@keyframes spin { to { --angle: 360deg; } }
+
+/* Number counter with no JS: <integer> interpolates and rounds */
+@property --n { syntax: "<integer>"; inherits: false; initial-value: 0; }
+.count { counter-reset: n var(--n); transition: --n 1.6s var(--ease-out); }
+.count::after { content: counter(n); }
+.count.is-visible { --n: 2026; }
+```
+
+- Syntaxes: `<angle>`, `<length>`, `<percentage>`, `<number>`, `<integer>`, `<color>`, `<length-percentage>`, and lists like `<color>+`.
+- `inherits: false` is cheaper: changing the value doesn't restyle the whole subtree.
+- Animating a property that feeds a gradient repaints every frame, so it's not compositor-only. Fine for one ring or button; avoid it on large areas. See [performance.md](performance.md).
+- Without `@property` support the value snaps, so the end state must still look right.
 
 ## Springs in pure CSS with `linear()`
 

@@ -68,6 +68,29 @@ Drawing on a canvas?
 - **Konva vs Two.js:** Konva is for apps where users manipulate shapes. Two.js is for scenes you program.
 - **Heavy libraries** (Three.js, Lottie, Rive, D3): lazy-load them with dynamic `import()` so they don't block first paint.
 
+## Loading from a CDN (no build step)
+
+Demos, prototypes, and single-file pages often load libraries straight from jsDelivr. Always pin an exact version. These URLs were checked working together on one page in November 2026; check npm for newer versions, but don't guess a version number from memory.
+
+| Library | Load it as | URL (jsDelivr) | Gotcha |
+|---|---|---|---|
+| GSAP + plugins | classic `<script>`s, core first | `gsap@3.15.1/dist/gsap.min.js`, then `dist/ScrollTrigger.min.js`, `dist/SplitText.min.js`, … | Call `gsap.registerPlugin(...)` once. ESM: `gsap@3.15.1/index.js` + `gsap@3.15.1/ScrollTrigger.js` |
+| Motion (vanilla) | ESM | `motion@14.9.0/+esm` | Named exports: `animate`, `spring`, `stagger`, `inView`, `hover`, `press` |
+| Anime.js v4 | ESM | `animejs@4.5.0/+esm` | Named exports only, no default (`import { animate } ...`) |
+| Three.js | ESM via import map | `three@0.187.0/build/three.module.js`, addons at `three@0.187.0/examples/jsm/` | Map `"three"` and `"three/addons/"` in `<script type="importmap">` before any module script |
+| D3 | `<script>` or ESM | `d3@7.9.2/dist/d3.min.js` or `d3@7.9.2/+esm` | |
+| Flubber | `<script>` or ESM | `flubber@0.4.2/build/flubber.min.js` or `flubber@0.4.2/+esm` | Global is `flubber` |
+| Konva | `<script>` or ESM | `konva@10.9.1/konva.min.js` or `konva@10.9.1/+esm` | |
+| Two.js | `<script>` or ESM | `two.js@0.8.24/build/two.min.js` or `build/two.module.js` | |
+| Proton | `<script>` | `proton-engine@7.1.5/build/proton.min.js` | Class is `Proton.default`, see [proton.md](proton.md) |
+| Lottie | classic `<script>` only | `lottie-web@5.13.0/build/player/lottie_light.min.js` | UMD only; `lottie_light` is SVG-only and has no expressions |
+| gifenc | ESM | `gifenc@1.0.3/dist/gifenc.esm.js` | |
+
+- Prefix each path with `https://cdn.jsdelivr.net/npm/`.
+- `+esm` is jsDelivr's auto-converted ES module. For CommonJS packages it can nest the real export one level down (`mod.default.default`). If `new X()` says "not a constructor", log the module object and look.
+- Load only what is above the fold up front. Pull in the rest with dynamic `import()` (or by injecting a `<script>`) when its section comes within about one screen of the viewport.
+- In a real project with a bundler, install from npm instead and use the imports shown in each rule.
+
 ## Bundle size priority
 
 When bytes matter, prefer this order. Measure your own build: sizes depend heavily on which modules you import.

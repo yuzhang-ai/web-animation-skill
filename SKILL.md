@@ -1,6 +1,6 @@
 ---
 name: web-animation
-description: Build real-time web animations and motion design — UI micro-interactions, enter/exit and page transitions, scroll-driven effects, SVG morphing, canvas/vector scenes, particles, 3D, and GIF/MP4 export of web animations. Covers native CSS/WAAPI/View Transitions plus GSAP, Motion (Framer Motion), Anime.js v4, Lottie, Rive, D3, Flubber, Konva, Two.js, Proton, and Three.js, with a brief→build→animate→refine→render workflow, motion tokens, accessibility, and frame-by-frame verification.
+description: Build real-time web animations and motion design — UI micro-interactions, enter/exit and page transitions, scroll-driven effects, SVG morphing, canvas/vector scenes, particles, 3D, and GIF/MP4 export of web animations. Covers native CSS/WAAPI/View Transitions plus GSAP, Motion (Framer Motion), Anime.js v4, Lottie, Rive, D3, Flubber, Konva, Two.js, Proton, and Three.js, with a brief→build→animate→refine→render workflow, motion tokens, art direction for showcase-grade pages, accessibility, and frame-by-frame verification.
 metadata:
   tags: animation, motion-design, web, css, waapi, view-transitions, gsap, motion, framer-motion, animejs, lottie, rive, d3, flubber, konva, two-js, proton, three-js, particles, gif, accessibility
 ---
@@ -15,10 +15,10 @@ This skill is **not** for rendering a video as the final product (explainers, pr
 
 You can't watch the animation, so follow the loop in [rules/workflow.md](rules/workflow.md):
 
-1. **Brief**: write a one-line spec for each moving element (trigger, property, from→to, duration, easing, stagger), plus its reduced-motion version.
+1. **Brief**: write a one-line spec for each moving element (trigger, property, from→to, duration, easing, stagger), plus its reduced-motion version. For a showcase, landing page, or hero that should impress, also set the mood, palette, type, and one signature effect first: see [rules/art-direction.md](rules/art-direction.md).
 2. **Build**: pick the lightest tool (table below). Put durations and easings in motion tokens.
 3. **Animate**: use `transform`/`opacity`, ease-out to enter and ease-in to leave, ≤ 200ms for UI feedback, and make it interruptible.
-4. **Refine**: capture frames at key timestamps (Playwright `page.clock` or `document.getAnimations()`) and look at them. Check the reduced-motion path and the cost in DevTools Performance.
+4. **Refine**: capture frames at key timestamps (Playwright `page.clock` or `document.getAnimations()`) and look at them. For pages longer than one screen, also do the whole-page scroll pass (covered headers, dead screens, clipping, blank canvases). Check the reduced-motion path and the cost in DevTools Performance.
 5. **Render**: lazy-load heavy libraries and pause loops when off-screen. Export GIF/MP4 when asked ([rules/export.md](rules/export.md)).
 
 ## Quick picker
@@ -43,6 +43,8 @@ You can't watch the animation, so follow the loop in [rules/workflow.md](rules/w
 | Particles: sparks, confetti, snow, smoke | Proton | [proton](rules/proton.md) |
 | 3D scenes | Three.js / R3F | [three-js](rules/three-js.md) |
 | GIF / MP4 / WebM of a web animation | Playwright + ffmpeg, MediaRecorder, gifenc | [export](rules/export.md) |
+| "Make it impressive": hero, showcase, landing page | Art direction + one signature effect | [art-direction](rules/art-direction.md) |
+| Single-file page, no bundler (libraries from a CDN) | Pinned jsDelivr URLs | [choosing-library](rules/choosing-library.md#loading-from-a-cdn-no-build-step) |
 
 Not sure? Use [rules/choosing-library.md](rules/choosing-library.md). If the project already has an animation library that can do the job, use that one.
 
@@ -64,6 +66,7 @@ Not sure? Use [rules/choosing-library.md](rules/choosing-library.md). If the pro
 ```css
 :root {
   --dur-instant: 100ms; --dur-fast: 180ms; --dur-base: 280ms; --dur-slow: 480ms;
+  --dur-story: 900ms;                            /* hero / storytelling only */
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);     /* entering */
   --ease-in: cubic-bezier(0.7, 0, 0.84, 0);      /* leaving */
   --ease-inout: cubic-bezier(0.65, 0, 0.35, 1);  /* moving on screen */
@@ -107,8 +110,8 @@ animate(".dot", { scale: [0, 1], delay: stagger(40, { grid: [8, 8], from: "cente
 
 ## All rules
 
-- **Process:** [workflow](rules/workflow.md) · [choosing-library](rules/choosing-library.md) · [accessibility](rules/accessibility.md) · [performance](rules/performance.md) · [export](rules/export.md)
-- **Native:** [native-apis](rules/native-apis.md) (WAAPI, View Transitions, scroll-driven, `@starting-style`, `linear()`) · [css-keyframes](rules/css-keyframes.md) · [scroll-animations](rules/scroll-animations.md)
+- **Process:** [workflow](rules/workflow.md) · [art-direction](rules/art-direction.md) · [choosing-library](rules/choosing-library.md) (incl. CDN loading) · [accessibility](rules/accessibility.md) · [performance](rules/performance.md) · [export](rules/export.md)
+- **Native:** [native-apis](rules/native-apis.md) (WAAPI, View Transitions, scroll-driven, `@property`, `@starting-style`, `linear()`) · [css-keyframes](rules/css-keyframes.md) · [scroll-animations](rules/scroll-animations.md)
 - **DOM / SVG libraries:** [motion](rules/motion.md) · [gsap](rules/gsap.md) · [animejs](rules/animejs.md) · [flubber](rules/flubber.md) · [d3](rules/d3.md)
 - **Asset playback:** [lottie](rules/lottie.md) · [rive](rules/rive.md)
 - **Canvas / WebGL:** [konva](rules/konva.md) · [two-js](rules/two-js.md) · [proton](rules/proton.md) · [three-js](rules/three-js.md)

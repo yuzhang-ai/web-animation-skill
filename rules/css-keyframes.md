@@ -88,6 +88,10 @@ animation-play-state: paused;         /* JS can toggle to "running" */
 }
 ```
 
+## Animating variables, gradients, and counters
+
+A custom property only animates smoothly if it is registered with `@property` and given a type. Without that it jumps from one value to the next. Registration is what makes rotating conic borders and pure-CSS number counters possible. See [native-apis.md](native-apis.md#animating-custom-properties-with-property).
+
 ## Reduced motion (accessibility)
 
 See [accessibility.md](accessibility.md) for what to reduce vs. keep. Global fallback:

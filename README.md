@@ -40,7 +40,8 @@ Render   → lazy-load, pause off-screen, export GIF/MP4 when asked
 | Area | Rule | Covers |
 |---|---|---|
 | **Process** | [workflow](rules/workflow.md) | Motion spec, tokens, timing rules of thumb, frame-by-frame verification with Playwright |
-| | [choosing-library](rules/choosing-library.md) | Decision flow and matrix across native APIs and 11 libraries |
+| | [art-direction](rules/art-direction.md) | Mood, palette, and type; one signature effect; rhythm and density; reactive polish recipes |
+| | [choosing-library](rules/choosing-library.md) | Decision flow and matrix across native APIs and 11 libraries, plus pinned CDN URLs for no-build pages |
 | | [accessibility](rules/accessibility.md) | `prefers-reduced-motion` per library, pause controls, WCAG 2.2.2 / 2.3.1 |
 | | [performance](rules/performance.md) | Compositor-only properties, layout thrash, pausing off-screen loops |
 | | [export](rules/export.md) | Deterministic capture → ffmpeg, MediaRecorder, gifenc |

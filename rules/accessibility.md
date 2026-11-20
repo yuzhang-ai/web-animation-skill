@@ -128,6 +128,75 @@ io.observe(canvas);
 document.addEventListener("visibilitychange", () => (document.hidden ? stop() : start()));
 ```
 
+## One switch for every loop
+
+With more than one or two animated pieces, a single registry keeps the "should this run?" decision in one place. It covers the OS setting, a page-level toggle, the tab being hidden, and the element being off-screen.
+
+```js
+const os = matchMedia("(prefers-reduced-motion: reduce)");
+const state = { reduce: os.matches, paused: false };
+const demos = new Set(); // each: { el, start(), stop(), still(), visible, running }
+
+function sync() {
+  for (const d of demos) {
+    const run = d.visible && !document.hidden && !state.paused && !state.reduce;
+    if (run && !d.running) { d.running = true; d.start(); }
+    else if (!run && d.running) { d.running = false; d.stop(); }
+    if (!run) d.still(); // draw one meaningful frame, never a blank canvas
+  }
+}
+
+const io = new IntersectionObserver((entries) => {
+  for (const e of entries) for (const d of demos) if (d.el === e.target) d.visible = e.isIntersecting;
+  sync();
+}, { rootMargin: "100px" });
+
+function register(d) { d.visible = false; d.running = false; demos.add(d); io.observe(d.el); }
+
+os.addEventListener("change", (e) => { state.reduce = e.matches; sync(); });
+document.addEventListener("visibilitychange", sync);
+```
+
+### A page-level "reduce motion" toggle
+
+The OS setting is the default, but a visible toggle helps people who don't know the setting exists, and it makes the reduced version easy to test. `gsap.matchMedia()` only listens to real media queries, so a toggle needs a GSAP context you can revert and rebuild:
+
+```js
+let gctx;
+function buildGsap() {
+  gctx?.revert();                 // kills tweens and ScrollTriggers and restores inline styles, pins included
+  gctx = gsap.context(() => {
+    if (state.reduce) { gsap.set(".reveal", { autoAlpha: 1 }); return; }
+    gsap.from(".reveal", { autoAlpha: 0, y: 40, stagger: 0.06, scrollTrigger: ".reveal" });
+    // pinned / scrubbed sections go here too
+  });
+  ScrollTrigger.refresh();
+}
+
+toggle.addEventListener("click", () => {
+  state.reduce = !state.reduce;
+  toggle.setAttribute("aria-pressed", String(state.reduce));
+  document.documentElement.classList.toggle("reduce-motion", state.reduce); // CSS hook
+  buildGsap();
+  sync();
+});
+```
+
+In CSS, write reduced rules once under both selectors: `@media (prefers-reduced-motion: reduce)` for the OS setting, and `.reduce-motion` for the toggle.
+
+### Resizing a canvas wipes the still frame
+
+Setting `canvas.width` or `canvas.height` clears the bitmap, even to the same value. A `ResizeObserver` fires once on `observe()`, often **after** you drew the reduced-motion still frame, so the canvas goes blank. Redraw after every resize when the loop isn't running:
+
+```js
+new ResizeObserver(() => {
+  const dpr = Math.min(devicePixelRatio, 2);
+  canvas.width = canvas.clientWidth * dpr;
+  canvas.height = canvas.clientHeight * dpr;
+  if (!demo.running) demo.still();
+}).observe(canvas);
+```
+
 ## Verify
 
 In Chrome DevTools, open Rendering and set **Emulate CSS media feature prefers-reduced-motion** to `reduce`. In Playwright, call `page.emulateMedia({ reducedMotion: "reduce" })`. Check that every state change is still perceivable and that no content is stuck at `opacity: 0`.
