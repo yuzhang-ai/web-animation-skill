@@ -80,7 +80,7 @@ Render   → lazy-load, pause off-screen, export GIF/MP4 when asked
 
 ## Showcase page
 
-`docs/index.html` is self-contained. Open it locally or serve the `docs/` folder with GitHub Pages (**Settings → Pages → Deploy from branch → `main` / `/docs`**).
+`docs/index.html` is self-contained. To run it locally, serve the folder (`python -m http.server 8000 --directory docs`). Every push to `master` that touches `docs/` redeploys it to GitHub Pages through [`.github/workflows/pages.yml`](.github/workflows/pages.yml).
 
 Regenerate the README media by recording the page (the deterministic method is in [export.md](rules/export.md)) and encoding it with ffmpeg.
 
