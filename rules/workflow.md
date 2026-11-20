@@ -120,6 +120,29 @@ Look at the frames and check for these problems:
 - [ ] Reduced motion: re-run with `await page.emulateMedia({ reducedMotion: "reduce" })`
 - [ ] Interrupt: trigger the reverse mid-animation and check it continues from the current value
 
+### Whole-page pass (landing pages, showcases, anything longer than one screen)
+
+Per-animation frames miss the problems that only appear while scrolling. Scroll the real page with the mouse wheel, not `scrollTo`, so scroll-linked effects fire. Take one screenshot per ~600px of scroll and wait about 1s at each stop for reveals to settle. Then tile the shots into one contact sheet (ffmpeg `tile=2x4`) so you see the rhythm of the whole page at once. Open the suspicious frames at full size.
+
+```js
+const total = await page.evaluate(() => document.documentElement.scrollHeight);
+for (let y = 0, i = 0; y < total; y += 600, i++) {
+  await page.mouse.wheel(0, 600);
+  await page.waitForTimeout(1000);
+  await page.screenshot({ path: `page/${String(i).padStart(2, "0")}.png` });
+}
+```
+
+Check every frame for:
+
+- [ ] **Fixed or sticky headers covering content.** A transparent bar with a big heading scrolling under it reads as broken. Give the bar a background or backdrop blur, or fade it in after the hero.
+- [ ] **Dead screens.** A full viewport with nothing moving and more than half of it empty. Pull the next section up or put something alive there.
+- [ ] **Clipping.** Text cut off by `overflow`, SplitText line masks, or `background-clip: text` clipping shadows and descenders. Headlines that wrap mid-word ("Motio / n").
+- [ ] **Blank canvases.** Canvases that are empty before they start, under reduced motion, or after a resize.
+- [ ] **Unstyled leftovers.** A chip, label, or button missing its class, so it renders as plain text next to styled siblings.
+- [ ] **Mobile.** Repeat at 390px wide and check `document.documentElement.scrollWidth <= innerWidth` (no sideways scroll).
+- [ ] **Console.** Collect `console` errors and `pageerror` events during the whole pass; it should be zero.
+
 ### Performance check
 
 Open Chrome DevTools → Performance → record while the animation plays. Long frames (> 16ms) or purple **Layout** bars inside the animation mean you're animating the wrong property.

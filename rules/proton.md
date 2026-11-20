@@ -46,6 +46,26 @@ proton.addRenderer(new CanvasRenderer(canvas));
 })();
 ```
 
+### Loading without a bundler (CDN)
+
+The package is CommonJS-shaped, so the `Proton` class is **not** where the bundler import above puts it:
+
+```html
+<!-- UMD: the global is a namespace, the class is on .default -->
+<script src="https://cdn.jsdelivr.net/npm/proton-engine@7.1.5/build/proton.min.js"></script>
+<script>
+  const Proton = window.Proton.default;            // new window.Proton() → "not a constructor"
+  const { Emitter, Rate, Span } = window.Proton;   // named classes are fine
+</script>
+```
+
+```js
+// ESM via jsDelivr's +esm wrapper: the class is one level deeper
+const mod = await import("https://cdn.jsdelivr.net/npm/proton-engine@7.1.5/+esm");
+const Proton = mod.default?.default ?? mod.default;
+const { Emitter, Rate, Span } = mod;
+```
+
 ## Span — randomness everywhere
 
 `new Span(a, b)` means "random between a and b". `new Span([x, y, z])` picks randomly from the list. Most initializers and behaviours accept a Span anywhere they take a number, and that randomness is how you get organic effects.
@@ -53,11 +73,18 @@ proton.addRenderer(new CanvasRenderer(canvas));
 ## Common recipes
 
 ```js
-// Burst / confetti on click
+// Burst / confetti / fireworks on click: one short-lived emitter per click.
+// emit("once", true) fires a single burst and destroys the emitter after 1s.
+// Plain emit("once") leaves the emitter in proton forever, so clicks leak emitters.
 canvas.addEventListener("pointerdown", (e) => {
-  emitter.p.x = e.offsetX; emitter.p.y = e.offsetY;
-  emitter.rate = new Rate(new Span(30, 50), 0);   // one burst
-  emitter.emit("once");
+  const burst = new Emitter();
+  burst.rate = new Rate(new Span(30, 50), 0);
+  burst.addInitialize(new Life(0.6, 1.2));
+  burst.addInitialize(new Velocity(new Span(2, 5), new Span(0, 360), "polar"));
+  burst.addBehaviour(new Alpha(1, 0));
+  burst.p.x = e.offsetX; burst.p.y = e.offsetY;
+  proton.addEmitter(burst);
+  burst.emit("once", true);
 });
 
 // Follow the pointer (trail)
@@ -81,6 +108,22 @@ emitter.addBehaviour(new Cyclone(30, 1.5));
 // Draw images / sprites instead of circles
 import { Body } from "proton-engine";
 emitter.addInitialize(new Body(["/spark.png", "/star.png"]));  // prefer WebGLRenderer with Body + Color
+```
+
+### Trails and glow with the canvas renderer
+
+`CanvasRenderer` clears the whole canvas every frame. For light streaks, take over the clear and paint a translucent fill instead, then draw particles additively:
+
+```js
+const renderer = new CanvasRenderer(canvas);
+renderer.onProtonUpdate = function () {
+  const ctx = this.context;
+  ctx.globalCompositeOperation = "source-over";
+  ctx.fillStyle = "rgba(10, 11, 13, 0.18)";   // page background, low alpha = longer trails
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.globalCompositeOperation = "lighter";   // overlapping particles glow
+};
+proton.addRenderer(renderer);
 ```
 
 ## Renderers
