@@ -1,6 +1,16 @@
 # Web Animation Skill
 
-A skill that teaches AI coding agents (Claude Code, Codex, Cursor, GitHub Copilot, …) to build **real-time web motion**: picking the lightest tool, writing current APIs, respecting reduced motion, and checking the result frame by frame instead of guessing.
+**Coding agents can't watch animations. This skill makes them check the frames.**
+
+[![skills.sh installs](https://www.skills.sh/b/yuzhang-ai/web-animation-skill)](https://skills.sh/yuzhang-ai/web-animation-skill)
+[![Live showcase](https://img.shields.io/badge/live-showcase-d7ff5a?style=flat-square)](https://yuzhang-ai.github.io/web-animation-skill/)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue?style=flat-square)](#license)
+
+```bash
+npx skills add yuzhang-ai/web-animation-skill
+```
+
+Works with Claude Code, Codex, Cursor, GitHub Copilot and any agent that reads `SKILL.md`.
 
 <p align="center">
   <a href="https://yuzhang-ai.github.io/web-animation-skill/">
@@ -15,6 +25,12 @@ A skill that teaches AI coding agents (Claude Code, Codex, Cursor, GitHub Copilo
   <a href="https://yuzhang-ai.github.io/web-animation-skill/"><b>Live showcase</b></a> · <a href="docs/media/demo.mp4">Full interactive tour (MP4, 26 s)</a> · every card runs the library its rule describes
 </p>
 
+## Why
+
+- **It looks before it ships.** In the refine step the agent freezes time with Playwright's `page.clock`, screenshots fixed timestamps (0 / 120 / 240 / 480 ms) and checks them: no first-frame flash, no jumps, no element left at `opacity: 0`, reduced motion still works. Time is frozen, so each frame is exactly the moment it claims to be.
+- **It picks the lightest tool.** CSS, View Transitions and scroll-driven animations first; GSAP, Motion, Anime.js v4, Three.js and 7 more libraries only when the job needs them. Every animation gets a reduced-motion version.
+- **It writes current APIs.** `motion/react` instead of `framer-motion`, the Anime.js v4 API, GSAP plugins that are now free, dotLottie, three.js `setAnimationLoop`.
+
 ## Install
 
 ```bash
@@ -22,6 +38,8 @@ npx skills add yuzhang-ai/web-animation-skill
 ```
 
 Or copy `SKILL.md` and `rules/` into your agent's skills folder (for example `.claude/skills/web-animation/`).
+
+**Pairs well with** GreenSock's official [gsap-skills](https://github.com/greensock/gsap-skills): they go deep on GSAP itself, this skill decides when you need GSAP at all and how to verify the result.
 
 ## How it works
 
@@ -91,3 +109,7 @@ This skill is for **real-time browser animation**. For rendering videos as the f
 ## License
 
 MIT
+
+---
+
+If this saved your agent from one janky animation, a ⭐ helps other people find it.
