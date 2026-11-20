@@ -4,8 +4,22 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Web Animation Skill</title>
-<meta name="description" content="A skill that teaches coding agents to build web motion. Every rule, running live.">
+<meta name="description" content="Coding agents can't watch animations. This skill makes them check the frames. 19 rules, 11 libraries, every one running live.">
 <meta name="theme-color" content="#0a0b0d">
+<link rel="canonical" href="https://yuzhang-ai.github.io/web-animation-skill/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Web Animation Skill">
+<meta property="og:title" content="Web Animation Skill — Motion, verified.">
+<meta property="og:description" content="Coding agents can't watch animations. This skill makes them check the frames. 19 rules, 11 libraries, every one running live.">
+<meta property="og:url" content="https://yuzhang-ai.github.io/web-animation-skill/">
+<meta property="og:image" content="https://yuzhang-ai.github.io/web-animation-skill/media/hero.jpg">
+<meta property="og:image:width" content="1280">
+<meta property="og:image:height" content="640">
+<meta property="og:image:alt" content="The title 'Motion, verified.' over a swirling flow field of coloured particles">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Web Animation Skill — Motion, verified.">
+<meta name="twitter:description" content="Coding agents can't watch animations. This skill makes them check the frames.">
+<meta name="twitter:image" content="https://yuzhang-ai.github.io/web-animation-skill/media/hero.jpg">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 32 32%22%3E%3Crect width=%2232%22 height=%2232%22 rx=%228%22 fill=%22%230a0b0d%22/%3E%3Ccircle cx=%2216%22 cy=%2216%22 r=%227%22 fill=%22%23d7ff5a%22/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -279,6 +293,11 @@ a { color: inherit; }
 .outro h2 .w { display: inline-block; }
 .outro h2 em { color: var(--lime); }
 .outro .row { display: flex; justify-content: space-between; align-items: end; gap: 24px; margin-top: 40px; flex-wrap: wrap; }
+.outro .cta { display: flex; flex-direction: column; align-items: flex-end; gap: 12px; max-width: 100%; }
+.star { display: inline-flex; align-items: center; gap: 8px; padding: 10px 16px; border-radius: 99px; text-decoration: none; color: var(--muted); box-shadow: inset 0 0 0 1px var(--line-2); transition: color .2s, box-shadow .2s; }
+.star span { color: var(--lime); font-size: 13px; }
+.star:hover { color: var(--ink); box-shadow: inset 0 0 0 1px var(--lime); }
+@media (max-width: 620px) { .outro .cta { align-items: flex-start; } }
 .fine { color: var(--dim); font-size: 12px; margin: 0; max-width: 560px; }
 .fine a { color: var(--muted); }
 
@@ -296,7 +315,7 @@ a { color: inherit; }
   <a class="brand mono" href="https://github.com/yuzhang-ai/web-animation-skill"><span class="dot"></span><b>web-animation</b> / skill</a>
   <div class="right">
     <button class="switch mono" role="switch" aria-checked="false" data-reduce-toggle><span class="track"></span><span class="hide-sm">Reduce motion</span></button>
-    <a class="mono hide-sm" href="https://github.com/yuzhang-ai/web-animation-skill">GitHub ↗</a>
+    <a class="mono hide-sm" href="https://github.com/yuzhang-ai/web-animation-skill">★ Star on GitHub</a>
   </div>
 </div></nav>
 
@@ -331,7 +350,7 @@ a { color: inherit; }
         <g class="nodes"></g>
         <g class="comet"><circle class="comet-halo" r="12"/><circle class="comet-core" r="4"/></g>
       </svg></div>
-      <footer class="mono"><span class="tag">the loop every rule follows</span><a href="https://github.com/yuzhang-ai/web-animation-skill/blob/main/rules/workflow.md">workflow.md ↗</a></footer>
+      <footer class="mono"><span class="tag">the loop every rule follows</span><a href="https://github.com/yuzhang-ai/web-animation-skill/blob/master/rules/workflow.md">workflow.md ↗</a></footer>
     </article>
 
     <article class="card" data-demo="gsap">
@@ -341,19 +360,19 @@ a { color: inherit; }
         <div class="gs-cap mono">&nbsp;</div>
         <div class="gs-scrub"><i></i><b></b></div>
       </div></div>
-      <footer class="mono"><span class="tag">all plugins free</span><a href="https://github.com/yuzhang-ai/web-animation-skill/blob/main/rules/gsap.md">gsap.md ↗</a></footer>
+      <footer class="mono"><span class="tag">all plugins free</span><a href="https://github.com/yuzhang-ai/web-animation-skill/blob/master/rules/gsap.md">gsap.md ↗</a></footer>
     </article>
 
     <article class="card h2" data-demo="anime">
       <header><div><h3>Anime.js v4</h3><p class="sub mono">grid stagger · ripple</p></div><span class="idx mono">03</span></header>
       <div class="stage"><div class="agrid-wrap"><div class="agrid"></div></div></div>
-      <footer class="mono"><span class="tag">hover the grid</span><a href="https://github.com/yuzhang-ai/web-animation-skill/blob/main/rules/animejs.md">animejs.md ↗</a></footer>
+      <footer class="mono"><span class="tag">hover the grid</span><a href="https://github.com/yuzhang-ai/web-animation-skill/blob/master/rules/animejs.md">animejs.md ↗</a></footer>
     </article>
 
     <article class="card" data-demo="motion" data-notilt>
       <header><div><h3>Motion</h3><p class="sub mono">springs × goo filter</p></div><span class="idx mono">04</span></header>
       <div class="stage"><div class="goo"></div><span class="goo-hint mono">chase me</span></div>
-      <footer class="mono"><span class="tag">velocity-preserving springs</span><a href="https://github.com/yuzhang-ai/web-animation-skill/blob/main/rules/motion.md">motion.md ↗</a></footer>
+      <footer class="mono"><span class="tag">velocity-preserving springs</span><a href="https://github.com/yuzhang-ai/web-animation-skill/blob/master/rules/motion.md">motion.md ↗</a></footer>
     </article>
 
     <article class="card h2" data-demo="vt">
@@ -365,19 +384,19 @@ a { color: inherit; }
         <div class="tile" style="background:var(--coral)"><span class="ttl">Resize</span><span>04</span><span class="more">Size and position animate together — no FLIP math.</span></div>
         <div class="tile" style="background:#f2f0ea"><span class="ttl">0 KB</span><span>05</span><span class="more">document.startViewTransition(update)</span></div>
       </div></div>
-      <footer class="mono"><span class="tag">startViewTransition</span><a href="https://github.com/yuzhang-ai/web-animation-skill/blob/main/rules/native-apis.md">native-apis.md ↗</a></footer>
+      <footer class="mono"><span class="tag">startViewTransition</span><a href="https://github.com/yuzhang-ai/web-animation-skill/blob/master/rules/native-apis.md">native-apis.md ↗</a></footer>
     </article>
 
     <article class="card w2 h2" data-demo="three" data-notilt>
       <header><div><h3>Three.js</h3><p class="sub mono">noise shader · iridescence</p></div><span class="idx mono">06</span></header>
       <div class="stage"><div class="three-wrap"><span class="hint mono">move to steer · 40k vertices displaced on the GPU</span></div></div>
-      <footer class="mono"><span class="tag">ShaderMaterial · setAnimationLoop</span><a href="https://github.com/yuzhang-ai/web-animation-skill/blob/main/rules/three-js.md">three-js.md ↗</a></footer>
+      <footer class="mono"><span class="tag">ShaderMaterial · setAnimationLoop</span><a href="https://github.com/yuzhang-ai/web-animation-skill/blob/master/rules/three-js.md">three-js.md ↗</a></footer>
     </article>
 
     <article class="card" data-demo="css">
       <header><div><h3>CSS only</h3><p class="sub mono">@property · conic</p></div><span class="idx mono">07</span></header>
       <div class="stage"><div class="cssk"><div class="ringwrap"><div class="ring-glow"></div><div class="ring"></div><div class="blob"></div></div></div><span class="lbl mono" style="position:absolute;left:0;bottom:0;color:var(--dim);font-size:9px">--a: &lt;angle&gt;</span></div>
-      <footer class="mono"><span class="tag">zero JavaScript</span><a href="https://github.com/yuzhang-ai/web-animation-skill/blob/main/rules/css-keyframes.md">css-keyframes.md ↗</a></footer>
+      <footer class="mono"><span class="tag">zero JavaScript</span><a href="https://github.com/yuzhang-ai/web-animation-skill/blob/master/rules/css-keyframes.md">css-keyframes.md ↗</a></footer>
     </article>
 
     <article class="card h2" data-demo="scroll" data-notilt>
@@ -387,19 +406,19 @@ a { color: inherit; }
         <div style="position:relative;flex:1;display:flex;min-height:0"><div class="drum" tabindex="0" aria-label="Scrollable list of libraries"></div><div class="drum-band"></div></div>
         <p class="drum-note">This browser lacks scroll-driven animations — the list still scrolls (progressive enhancement).</p>
       </div></div>
-      <footer class="mono"><span class="tag">no scroll listeners</span><a href="https://github.com/yuzhang-ai/web-animation-skill/blob/main/rules/scroll-animations.md">scroll.md ↗</a></footer>
+      <footer class="mono"><span class="tag">no scroll listeners</span><a href="https://github.com/yuzhang-ai/web-animation-skill/blob/master/rules/scroll-animations.md">scroll.md ↗</a></footer>
     </article>
 
     <article class="card" data-demo="d3">
       <header><div><h3>D3.js</h3><p class="sub mono">attrTween · arcs</p></div><span class="idx mono">09</span></header>
       <div class="stage d3"></div>
-      <footer class="mono"><span class="tag">data joins</span><a href="https://github.com/yuzhang-ai/web-animation-skill/blob/main/rules/d3.md">d3.md ↗</a></footer>
+      <footer class="mono"><span class="tag">data joins</span><a href="https://github.com/yuzhang-ai/web-animation-skill/blob/master/rules/d3.md">d3.md ↗</a></footer>
     </article>
 
     <article class="card" data-demo="lottie">
       <header><div><h3>Lottie</h3><p class="sub mono">trim paths</p></div><span class="idx mono">10</span></header>
       <div class="stage"><div class="lot"><div></div></div></div>
-      <footer class="mono"><span class="tag">generated JSON</span><a href="https://github.com/yuzhang-ai/web-animation-skill/blob/main/rules/lottie.md">lottie.md ↗</a></footer>
+      <footer class="mono"><span class="tag">generated JSON</span><a href="https://github.com/yuzhang-ai/web-animation-skill/blob/master/rules/lottie.md">lottie.md ↗</a></footer>
     </article>
 
     <article class="card" data-demo="flubber">
@@ -407,25 +426,25 @@ a { color: inherit; }
       <div class="stage flub"><svg viewBox="0 0 120 120" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
         <defs><linearGradient id="flubGrad" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#d7ff5a"/><stop offset="1" stop-color="#5fd4ff"/></linearGradient></defs>
         <path fill="url(#flubGrad)"></path></svg></div>
-      <footer class="mono"><span class="tag">separate · combine</span><a href="https://github.com/yuzhang-ai/web-animation-skill/blob/main/rules/flubber.md">flubber.md ↗</a></footer>
+      <footer class="mono"><span class="tag">separate · combine</span><a href="https://github.com/yuzhang-ai/web-animation-skill/blob/master/rules/flubber.md">flubber.md ↗</a></footer>
     </article>
 
     <article class="card h2" data-demo="two">
       <header><div><h3>Two.js</h3><p class="sub mono">vertices · blend</p></div><span class="idx mono">12</span></header>
       <div class="stage"><div class="two-stage"></div></div>
-      <footer class="mono"><span class="tag">3 blobs · screen blend</span><a href="https://github.com/yuzhang-ai/web-animation-skill/blob/main/rules/two-js.md">two-js.md ↗</a></footer>
+      <footer class="mono"><span class="tag">3 blobs · screen blend</span><a href="https://github.com/yuzhang-ai/web-animation-skill/blob/master/rules/two-js.md">two-js.md ↗</a></footer>
     </article>
 
     <article class="card h2" data-demo="konva" data-notilt>
       <header><div><h3>Konva</h3><p class="sub mono">verlet rope</p></div><span class="idx mono">13</span></header>
       <div class="stage"><div class="konva-stage"></div><span class="hint mono">grab the ball &amp; fling it</span></div>
-      <footer class="mono"><span class="tag">drag · physics</span><a href="https://github.com/yuzhang-ai/web-animation-skill/blob/main/rules/konva.md">konva.md ↗</a></footer>
+      <footer class="mono"><span class="tag">drag · physics</span><a href="https://github.com/yuzhang-ai/web-animation-skill/blob/master/rules/konva.md">konva.md ↗</a></footer>
     </article>
 
     <article class="card w2" data-demo="proton" data-notilt>
       <header><div><h3>Proton</h3><p class="sub mono">emitters · fireworks · trails</p></div><span class="idx mono">14</span></header>
       <div class="stage"><div class="proton-stage"><canvas></canvas><span class="hint mono">move · click to burst</span></div></div>
-      <footer class="mono"><span class="tag">additive blending</span><a href="https://github.com/yuzhang-ai/web-animation-skill/blob/main/rules/proton.md">proton.md ↗</a></footer>
+      <footer class="mono"><span class="tag">additive blending</span><a href="https://github.com/yuzhang-ai/web-animation-skill/blob/master/rules/proton.md">proton.md ↗</a></footer>
     </article>
 
     <article class="card w2" data-demo="gif">
@@ -439,7 +458,7 @@ a { color: inherit; }
           <div class="actions"><button type="button" data-encode>Encode again</button><a download="loop.gif" hidden>Save ↓</a></div>
         </div>
       </div></div>
-      <footer class="mono"><span class="tag">GIF · MP4 · WebM</span><a href="https://github.com/yuzhang-ai/web-animation-skill/blob/main/rules/export.md">export.md ↗</a></footer>
+      <footer class="mono"><span class="tag">GIF · MP4 · WebM</span><a href="https://github.com/yuzhang-ai/web-animation-skill/blob/master/rules/export.md">export.md ↗</a></footer>
     </article>
 
     <article class="card w2" data-demo="a11y">
@@ -453,7 +472,7 @@ a { color: inherit; }
           <div class="sys mono"></div>
         </div>
       </div></div>
-      <footer class="mono"><span class="tag">WCAG 2.2.2 · 2.3.1</span><a href="https://github.com/yuzhang-ai/web-animation-skill/blob/main/rules/accessibility.md">accessibility.md ↗</a></footer>
+      <footer class="mono"><span class="tag">WCAG 2.2.2 · 2.3.1</span><a href="https://github.com/yuzhang-ai/web-animation-skill/blob/master/rules/accessibility.md">accessibility.md ↗</a></footer>
     </article>
 
   </div>
@@ -463,8 +482,11 @@ a { color: inherit; }
   <div class="eyebrow mono">19 rules · 1 skill · any coding agent</div>
   <h2 data-outro>Brief. Build. Animate. Refine. <em>Render.</em></h2>
   <div class="row">
-    <p class="fine">Not shown: Rive (needs a <code>.riv</code> from the Rive editor — see <a href="https://github.com/yuzhang-ai/web-animation-skill/blob/main/rules/rive.md">rive.md</a>). Libraries load from jsDelivr; each card fails on its own if one is blocked.</p>
-    <div class="install"><code>npx skills add yuzhang-ai/web-animation-skill</code><button type="button" data-copy>Copy</button></div>
+    <p class="fine">Not shown: Rive (needs a <code>.riv</code> from the Rive editor — see <a href="https://github.com/yuzhang-ai/web-animation-skill/blob/master/rules/rive.md">rive.md</a>). Libraries load from jsDelivr; each card fails on its own if one is blocked.</p>
+    <div class="cta">
+      <div class="install"><code>npx skills add yuzhang-ai/web-animation-skill</code><button type="button" data-copy>Copy</button></div>
+      <a class="star mono" href="https://github.com/yuzhang-ai/web-animation-skill"><span aria-hidden="true">★</span> Star on GitHub</a>
+    </div>
   </div>
 </div></section>
 
