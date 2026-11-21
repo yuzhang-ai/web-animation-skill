@@ -1,0 +1,98 @@
+<!doctype html>
+<!--
+  Template: split-text-reveal — three text reveals: lines rising from masks, letters blurring in,
+            and a paragraph that lights up word by word as you scroll
+  Stack: GSAP 3.15.1 + SplitText + ScrollTrigger
+  Credit: original for this repo (patterns as used in Codrops' Seam Transitions intro, MIT). MIT.
+  Change: durations / staggers in REVEALS, the text.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Split text reveal</title>
+<script>if (new URLSearchParams(location.search).get("theme") === "light") document.documentElement.classList.add("light");</script>
+<style>
+  :root { --bg: #0b0c0f; --fg: #ecebe6; --muted: #5f605c; --accent: #d7ff5a; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; overflow-x: clip; }
+  body { background: var(--bg); color: var(--fg); font: 17px/1.5 ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif; }
+  section { min-height: 100svh; display: grid; align-content: center; padding: 10svh 6vw; }
+  .eyebrow { margin: 0 0 20px; font-size: 13px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--accent); }
+
+  .lines { margin: 0; max-width: 14ch; font-size: clamp(44px, 9vw, 132px); line-height: 0.95; letter-spacing: -0.045em; font-weight: 700; }
+  .chars { margin: 0; font-size: clamp(36px, 7vw, 96px); line-height: 1; letter-spacing: -0.03em; font-weight: 300; }
+  .chars em { font-style: normal; color: var(--accent); font-weight: 600; }
+  .read { margin: 0; max-width: 28ch; font-size: clamp(26px, 3.6vw, 52px); line-height: 1.2; letter-spacing: -0.02em; }
+
+  /* Hide before split so nothing flashes; JS reveals. Without JS (no .js class) text is just there. */
+  .js [data-reveal] { visibility: hidden; }
+  .js [data-reveal].is-split { visibility: visible; }
+  /* ?theme=light: warm paper, never pure white; accents one step darker so they keep their contrast */
+  html.light { color-scheme: light; --bg: #f1ede4; --fg: #1c1b18; --muted: #6d695f; --accent: #7da600; --line: #d9d2c3;
+               --card: #f7f4ed; --panel: #e9e3d6; --edge: rgb(40 32 16 / 0.1); --glow: 125 166 0; }
+  html.light { --muted: #a8a295; }
+</style>
+<script>document.documentElement.classList.add("js");</script>
+</head>
+<body>
+  <section>
+    <p class="eyebrow">01 · Lines from masks</p>
+    <h1 class="lines" data-reveal="lines">Words arrive one line at a time</h1>
+  </section>
+  <section>
+    <p class="eyebrow">02 · Letters out of focus</p>
+    <h2 class="chars" data-reveal="chars">Every letter <em>finds</em> its place</h2>
+  </section>
+  <section>
+    <p class="eyebrow">03 · Read along on scroll</p>
+    <p class="read" data-reveal="read">Scroll slowly. Each word lights up as you reach it, so the paragraph reads at the pace you move, and dims again if you go back.</p>
+  </section>
+
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.15.1/dist/gsap.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.15.1/dist/SplitText.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.15.1/dist/ScrollTrigger.min.js"></script>
+<script>
+  gsap.registerPlugin(SplitText, ScrollTrigger);
+
+  const REVEALS = {
+    // Each line slides up out of its own clipping mask
+    lines: (el) => SplitText.create(el, {
+      type: "lines", mask: "lines", autoSplit: true,
+      onSplit: (s) => gsap.from(s.lines, { yPercent: 110, duration: 1.1, ease: "power4.out", stagger: 0.12 }),
+    }),
+    // Letters fade up from a blur in a random order, when the heading enters
+    chars: (el) => SplitText.create(el, {
+      type: "words, chars", autoSplit: true,
+      onSplit: (s) => gsap.from(s.chars, {
+        opacity: 0, filter: "blur(12px)", yPercent: 30, duration: 0.9, ease: "power3.out",
+        stagger: { each: 0.03, from: "random" },
+        scrollTrigger: { trigger: el, start: "top 80%", once: true },
+      }),
+    }),
+    // Words go from dim to bright, scrubbed by the scrollbar
+    read: (el) => SplitText.create(el, {
+      type: "words", autoSplit: true,
+      onSplit: (s) => gsap.fromTo(s.words, { opacity: 0.18 }, {
+        opacity: 1, ease: "none", stagger: 0.1,
+        scrollTrigger: { trigger: el, start: "top 75%", end: "bottom 45%", scrub: true },
+      }),
+    }),
+  };
+
+  document.fonts.ready.then(() => {
+    const mm = gsap.matchMedia();
+    mm.add("(prefers-reduced-motion: no-preference)", () => {
+      document.querySelectorAll("[data-reveal]").forEach((el) => {
+        REVEALS[el.dataset.reveal](el);
+        el.classList.add("is-split");
+      });
+    });
+    // Reduced motion: no split, text is simply visible
+    mm.add("(prefers-reduced-motion: reduce)", () => {
+      document.querySelectorAll("[data-reveal]").forEach((el) => el.classList.add("is-split"));
+    });
+  });
+</script>
+</body>
+</html>

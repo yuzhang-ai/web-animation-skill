@@ -1,0 +1,30 @@
+{
+  "id": "text-scramble",
+  "title": "Text scramble",
+  "summary": "Letters churn through random glyphs and lock into the real word from left to right, on load or hover.",
+  "category": "text",
+  "group": "native",
+  "stack": "Vanilla JS (rAF)",
+  "libs": [],
+  "useFor": [
+    "hero titles",
+    "nav links",
+    "tech / security brands",
+    "loading labels"
+  ],
+  "tags": [
+    "decode",
+    "hacker",
+    "glyph",
+    "hover"
+  ],
+  "source": {
+    "mode": "inspired",
+    "author": "Hyperplexed",
+    "url": "https://codepen.io/Hyperplexed/pen/rNrJgrd",
+    "license": "MIT (CodePen public pen)"
+  },
+  "check": {
+    "shot": "body"
+  }
+}

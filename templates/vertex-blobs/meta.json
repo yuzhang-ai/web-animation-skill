@@ -1,0 +1,33 @@
+{
+  "id": "vertex-blobs",
+  "title": "Vertex blobs",
+  "summary": "Three translucent blobs wobble vertex by vertex, orbit each other and blend with screen mode, while satellites circle a dashed orbit. The pointer pulls them apart.",
+  "category": "background",
+  "group": "two",
+  "stack": "Two.js (SVG renderer)",
+  "libs": [
+    {
+      "name": "two.js",
+      "version": "0.8.24",
+      "url": "https://cdn.jsdelivr.net/npm/two.js@0.8.24/build/two.min.js",
+      "license": "MIT"
+    }
+  ],
+  "useFor": [
+    "generative hero art",
+    "ambient brand backgrounds",
+    "audio / voice visualisers"
+  ],
+  "tags": [
+    "two.js",
+    "vertices",
+    "generative",
+    "blend-mode"
+  ],
+  "source": {
+    "mode": "original",
+    "author": "web-animation-skill",
+    "url": "https://github.com/yuzhang-ai/web-animation-skill",
+    "license": "MIT"
+  }
+}

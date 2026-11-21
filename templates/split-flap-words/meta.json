@@ -1,0 +1,41 @@
+{
+  "id": "split-flap-words",
+  "title": "Split-flap words",
+  "summary": "Words flip in letter by letter like a departure board (3D rotateX per character), hold, flip away, and the next word follows, with a progress scrubber.",
+  "category": "text",
+  "group": "gsap",
+  "featured": true,
+  "stack": "GSAP SplitText + timeline",
+  "libs": [
+    {
+      "name": "gsap",
+      "version": "3.15.1",
+      "url": "https://cdn.jsdelivr.net/npm/gsap@3.15.1/dist/gsap.min.js",
+      "license": "GSAP Standard License (free)"
+    },
+    {
+      "name": "gsap/SplitText",
+      "version": "3.15.1",
+      "url": "https://cdn.jsdelivr.net/npm/gsap@3.15.1/dist/SplitText.min.js",
+      "license": "GSAP Standard License (free)"
+    }
+  ],
+  "useFor": [
+    "rotating hero keywords",
+    "feature taglines",
+    "status boards"
+  ],
+  "tags": [
+    "splittext",
+    "3d",
+    "rotateX",
+    "stagger",
+    "timeline"
+  ],
+  "source": {
+    "mode": "original",
+    "author": "web-animation-skill",
+    "url": "https://github.com/yuzhang-ai/web-animation-skill",
+    "license": "MIT"
+  }
+}

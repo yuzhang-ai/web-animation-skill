@@ -1,0 +1,35 @@
+{
+  "id": "stagger-ripple-grid",
+  "title": "Stagger ripple grid",
+  "summary": "An 11×11 grid of tiles ripples outward from wherever the pointer touches: each tile lifts, spins and flashes colour with a delay set by its grid distance.",
+  "category": "hover",
+  "group": "anime",
+  "featured": true,
+  "stack": "Anime.js v4 stagger({ grid, from })",
+  "libs": [
+    {
+      "name": "animejs",
+      "version": "4.5.0",
+      "url": "https://cdn.jsdelivr.net/npm/animejs@4.5.0/+esm",
+      "license": "MIT"
+    }
+  ],
+  "useFor": [
+    "interactive hero backgrounds",
+    "empty states",
+    "loading / thinking states"
+  ],
+  "tags": [
+    "stagger",
+    "grid",
+    "ripple",
+    "elastic",
+    "anime-v4"
+  ],
+  "source": {
+    "mode": "original",
+    "author": "web-animation-skill",
+    "url": "https://github.com/yuzhang-ai/web-animation-skill",
+    "license": "MIT"
+  }
+}

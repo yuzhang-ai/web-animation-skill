@@ -1,0 +1,124 @@
+<!doctype html>
+<!--
+  Template: flubber-morph — Flubber morph
+  Stack: Flubber
+  Credit: original for this repo (from the web-animation-skill showcase). MIT.
+  Change: the shape point lists, the sequence, gradient colours, D and HOLD.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Flubber morph</title>
+<script>{ const q = new URLSearchParams(location.search); if (q.has("embed")) document.documentElement.classList.add("embed"); if (q.get("theme") === "light") document.documentElement.classList.add("light"); }</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500&family=Space+Grotesk:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0b0d; --card: #121418; --card-2: #16191e; --line: rgba(255,255,255,.07); --line-2: rgba(255,255,255,.12);
+    --ink: #f2f0ea; --muted: #8b909a; --dim: #4b505a;
+    --lime: #d7ff5a; --violet: #9a8cff; --cyan: #5fd4ff; --coral: #ff7a59;
+    --ease-out: cubic-bezier(0.16, 1, 0.3, 1); --ease-inout: cubic-bezier(0.65, 0, 0.35, 1);
+    --stage: #0d0e12; --tile: #262a33;
+  }
+  /* ?theme=light: warm paper, never pure white; accents one step darker so they keep their contrast */
+  html.light {
+    color-scheme: light;
+    --bg: #f1ede4; --card: #f7f4ed; --card-2: #fbf9f4; --line: rgba(40,32,16,.09); --line-2: rgba(40,32,16,.16);
+    --ink: #1c1b18; --muted: #6d695f; --dim: #a8a295;
+    --lime: #7da600; --violet: #6b58e8; --cyan: #0a92c9; --coral: #e8552f;
+    --stage: #ede8dd; --tile: #ddd6c6;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; overflow-x: clip; }
+  body { min-height: 100vh; display: grid; place-items: center; padding: 32px 16px; background: var(--bg); color: var(--ink);
+         font: 15px/1.45 "Space Grotesk", system-ui, sans-serif; }
+  .mono { font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 11px; letter-spacing: .08em; text-transform: uppercase; }
+  .frame { width: min(var(--w, 720px), calc(100vw - 32px)); }
+  .frame > h1 { margin: 0 0 4px; font: 400 clamp(30px, 4vw, 44px)/1 "Instrument Serif", serif; letter-spacing: -.02em; }
+  .frame > p { margin: 0 0 18px; color: var(--muted); }
+  .stage { position: relative; height: var(--h, 420px); border-radius: 24px; overflow: hidden;
+           background: linear-gradient(180deg, var(--card-2), var(--card)); box-shadow: inset 0 0 0 1px var(--line); }
+  .stage .hint { position: absolute; left: 16px; bottom: 12px; color: var(--dim); font-size: 10px; pointer-events: none; }
+  /* ?embed: just the effect, edge to edge (used by the template pages' preview) */
+  html.embed body { padding: 0; place-items: stretch; }
+  html.embed .frame { width: 100%; }
+  html.embed .frame > h1, html.embed .frame > p { display: none; }
+  html.embed .stage, html.embed .hero { height: 100vh; border-radius: 0; box-shadow: none; }
+  .flub { position: absolute; inset: 40px; }
+  .flub svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+  .flub path { filter: drop-shadow(0 0 14px rgba(215,255,90,.25)); }
+  .flub stop { transition: stop-color .9s var(--ease-inout); }
+</style>
+</head>
+<body>
+<main class="frame" style="--w:480px; --h:440px">
+  <h1>Flubber morph</h1>
+  <p>interpolate, separate and combine morph between shapes that share no structure.</p>
+  <div class="stage"><div class="flub"><svg viewBox="0 0 120 120" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
+    <defs><linearGradient id="flubGrad" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#d7ff5a"/><stop offset="1" stop-color="#5fd4ff"/></linearGradient></defs>
+    <path fill="url(#flubGrad)"></path></svg></div></div>
+</main>
+<script src="https://cdn.jsdelivr.net/npm/flubber@0.4.2/build/flubber.min.js"></script>
+<script>
+  const $ = (s, el = document) => el.querySelector(s);
+  const $$ = (s, el = document) => [...el.querySelectorAll(s)];
+  // ?theme=light switches the palette; canvases read these values, CSS reads the variables
+  const LIGHT = document.documentElement.classList.contains("light");
+  const C = LIGHT
+    ? { lime: "#7da600", violet: "#6b58e8", cyan: "#0a92c9", coral: "#e8552f", ink: "#1c1b18", muted: "#6d695f", bg: "#f1ede4", card: "#f7f4ed", card2: "#fbf9f4",
+        stage: "#ede8dd", tile: "#ddd6c6", dim: "#a8a295", line2: "rgba(40,32,16,.16)", blend: "source-over", fade: (a) => `rgba(237,232,221,${a})` }
+    : { lime: "#d7ff5a", violet: "#9a8cff", cyan: "#5fd4ff", coral: "#ff7a59", ink: "#f2f0ea", muted: "#8b909a", bg: "#0a0b0d", card: "#121418", card2: "#16191e",
+        stage: "#0d0e12", tile: "#262a33", dim: "#4b505a", line2: "rgba(255,255,255,.12)", blend: "lighter", fade: (a) => `rgba(13,14,18,${a})` };
+  const PALETTE = [C.lime, C.violet, C.cyan, C.coral], P4 = () => PALETTE;
+  const isLight = () => LIGHT, onTheme = () => {};
+
+  const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const observeSize = (el, fn) => { const ro = new ResizeObserver(() => fn(el.clientWidth, el.clientHeight)); ro.observe(el); fn(el.clientWidth, el.clientHeight); return ro; };
+  const rafLoop = (fn) => { let raf = 0, last = 0; const tick = (now) => { const dt = last ? Math.min(now - last, 50) / 1000 : 1 / 60; last = now; fn(dt, now); raf = requestAnimationFrame(tick); };
+    return { start() { last = 0; cancelAnimationFrame(raf); raf = requestAnimationFrame(tick); }, stop() { cancelAnimationFrame(raf); } }; };
+  function run(el, api) {
+    if (reduce) { api.still?.(); return; }
+    let visible = false, running = false;
+    const sync = () => { const on = visible && !document.hidden; if (on && !running) { running = true; api.start?.(); } else if (!on && running) { running = false; api.stop?.(); } };
+    new IntersectionObserver(([e]) => { visible = e.isIntersecting; sync(); }, { rootMargin: "60px" }).observe(el);
+    document.addEventListener("visibilitychange", sync);
+  }
+
+{
+  const card = $(".stage");
+  const flubber = window.flubber; if (!flubber) throw new Error("flubber failed to load");
+  const path = $(".stage path", card), stops = $$("stop", card), c = 60;
+  const ring = (n, rf, cx = c, cy = c) => Array.from({ length: n }, (_, i) => { const a = (i / n) * Math.PI * 2 - Math.PI / 2, r = rf(i); return [cx + Math.cos(a) * r, cy + Math.sin(a) * r]; });
+  const circle = ring(72, () => 42);
+  const star = ring(10, (i) => (i % 2 ? 19 : 50));
+  const dots = Array.from({ length: 6 }, (_, k) => { const a = (k / 6) * Math.PI * 2 - Math.PI / 2; return ring(24, () => 10, c + Math.cos(a) * 36, c + Math.sin(a) * 36); });
+  const heart = Array.from({ length: 72 }, (_, i) => { const t = (i / 72) * Math.PI * 2; return [c + 2.7 * 16 * Math.sin(t) ** 3, c - 2.7 * (13 * Math.cos(t) - 5 * Math.cos(2 * t) - 2 * Math.cos(3 * t) - Math.cos(4 * t)) - 4]; });
+  const squircle = Array.from({ length: 72 }, (_, i) => { const t = (i / 72) * Math.PI * 2, co = Math.cos(t), si = Math.sin(t); return [c + 44 * Math.sign(co) * Math.abs(co) ** 0.5, c + 44 * Math.sign(si) * Math.abs(si) ** 0.5]; });
+  const o = { maxSegmentLength: 2 };
+  const seq = [
+    [flubber.interpolate(circle, star, o), ["lime", "cyan"]],
+    [flubber.separate(star, dots, { ...o, single: true }), ["violet", "cyan"]],
+    [flubber.combine(dots, heart, { ...o, single: true }), ["coral", "violet"], flubber.toPathString(heart)],
+    [flubber.interpolate(heart, squircle, o), ["cyan", "lime"]],
+    [flubber.interpolate(squircle, circle, o), ["lime", "cyan"]],
+  ];
+  const ease = (t) => (t < 0.5 ? 16 * t ** 5 : 1 - (-2 * t + 2) ** 5 / 2);
+  let idx = 0, el = 0, colored = false;
+  const D = 1.0, HOLD = 0.55;
+  path.setAttribute("d", seq[0][0](0));
+  const loop = rafLoop((dt) => {
+    el += dt;
+    if (!colored) { stops[0].style.stopColor = C[seq[idx][1][0]]; stops[1].style.stopColor = C[seq[idx][1][1]]; colored = true; }
+    const f = Math.min(el / D, 1);
+    // combine() leaves overlapping pieces whose seams show through the gradient: swap in the plain shape once it lands
+    path.setAttribute("d", f === 1 && seq[idx][2] ? seq[idx][2] : seq[idx][0](ease(f)));
+    if (el > D + HOLD) { idx = (idx + 1) % seq.length; el = 0; colored = false; }
+  });
+  onTheme(() => (colored = false));
+  run(card, { start: loop.start, stop: loop.stop });
+}
+</script>
+</body>
+</html>

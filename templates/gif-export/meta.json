@@ -1,0 +1,34 @@
+{
+  "id": "gif-export",
+  "title": "GIF export",
+  "summary": "A seamless canvas loop drawn from t (not the clock), encoded to a GIF in the browser with gifenc in a few dozen milliseconds, ready to save.",
+  "category": "app",
+  "group": "export",
+  "stack": "Canvas + gifenc",
+  "libs": [
+    {
+      "name": "gifenc",
+      "version": "1.0.3",
+      "url": "https://cdn.jsdelivr.net/npm/gifenc@1.0.3/dist/gifenc.esm.js",
+      "license": "MIT"
+    }
+  ],
+  "useFor": [
+    "README / social previews",
+    "shareable stickers",
+    "design review loops"
+  ],
+  "tags": [
+    "gif",
+    "export",
+    "deterministic",
+    "loop",
+    "gifenc"
+  ],
+  "source": {
+    "mode": "original",
+    "author": "web-animation-skill",
+    "url": "https://github.com/yuzhang-ai/web-animation-skill",
+    "license": "MIT"
+  }
+}

@@ -1,0 +1,51 @@
+{
+  "id": "split-text-reveal",
+  "title": "Split text reveal",
+  "summary": "Three text reveals in one file: headline lines rising out of masks, letters fading up from a blur in random order, and a paragraph that lights up word by word as you scroll.",
+  "category": "text",
+  "group": "gsap",
+  "stack": "GSAP SplitText + ScrollTrigger",
+  "libs": [
+    {
+      "name": "gsap",
+      "version": "3.15.1",
+      "url": "https://cdn.jsdelivr.net/npm/gsap@3.15.1/dist/gsap.min.js",
+      "license": "GSAP Standard License (free)"
+    },
+    {
+      "name": "gsap/SplitText",
+      "version": "3.15.1",
+      "url": "https://cdn.jsdelivr.net/npm/gsap@3.15.1/dist/SplitText.min.js",
+      "license": "GSAP Standard License (free)"
+    },
+    {
+      "name": "gsap/ScrollTrigger",
+      "version": "3.15.1",
+      "url": "https://cdn.jsdelivr.net/npm/gsap@3.15.1/dist/ScrollTrigger.min.js",
+      "license": "GSAP Standard License (free)"
+    }
+  ],
+  "useFor": [
+    "hero headlines",
+    "section titles",
+    "manifesto / about paragraphs"
+  ],
+  "tags": [
+    "splittext",
+    "mask",
+    "stagger",
+    "blur",
+    "scrub",
+    "typography"
+  ],
+  "source": {
+    "mode": "original",
+    "author": "web-animation-skill",
+    "url": "https://github.com/yuzhang-ai/web-animation-skill",
+    "license": "MIT"
+  },
+  "check": {
+    "settle": 1600,
+    "shot": "viewport"
+  }
+}

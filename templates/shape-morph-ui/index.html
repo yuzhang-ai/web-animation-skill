@@ -1,0 +1,173 @@
+<!doctype html>
+<!--
+  Template: shape-morph-ui — one shape that never cuts, morphing between UI components on a beat
+  Stack: CSS transitions with a linear() spring + a tiny state clock (no library)
+  Credit: concept from @twoclipping's "One-Shape UI Motion" (X, 2026) and the open-design
+          motion-ui-morph template (Apache-2.0). This DOM version is written from scratch. MIT.
+  Change: the STATES list (size, radius, color) and the matching .face blocks.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Shape morph UI</title>
+<script>if (new URLSearchParams(location.search).get("theme") === "light") document.documentElement.classList.add("light");</script>
+<script>if (new URLSearchParams(location.search).has("embed")) document.documentElement.classList.add("embed");</script>
+<style>
+  :root {
+    --bg: #0b0c0f; --fg: #ecebe6; --muted: #8b8b86; --accent: #d7ff5a; --ink: #0b0c0f; --panel: #17181d;
+    /* Spring as a CSS easing: overshoots ~8%, settles by 50% of the duration */
+    --spring: linear(0, 0.13 3%, 0.5 9%, 0.86 16%, 1.04 23%, 1.08 28%, 1.06 34%, 1 44%, 0.99 53%, 1);
+    --morph: 620ms;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; min-height: 100vh; display: grid; place-items: center; overflow: hidden;
+    background: radial-gradient(60vmax 60vmax at 50% 45%, #15171c, var(--bg)); color: var(--fg);
+    font: 15px/1.3 ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  }
+  .stage { display: grid; place-items: center; gap: 56px; }
+
+  /* THE shape. Only size, radius and color change; it is never replaced. */
+  .shape {
+    position: relative; overflow: hidden; cursor: pointer;
+    width: var(--w); height: var(--h); border-radius: var(--r); background: var(--c);
+    box-shadow: 0 18px 50px -18px rgb(0 0 0 / 0.8), inset 0 0 0 1px rgb(255 255 255 / 0.06);
+    transition: width var(--morph) var(--spring), height var(--morph) var(--spring),
+                border-radius var(--morph) var(--spring), background-color 240ms ease;
+  }
+  /* Each face is laid out at its final size and centred, so text never reflows mid-morph */
+  .face {
+    position: absolute; left: 50%; top: 50%; translate: -50% -50%;
+    display: flex; align-items: center; gap: 10px; white-space: nowrap;
+    opacity: 0; scale: 0.92; filter: blur(4px);
+    transition: opacity 160ms ease, scale 160ms ease, filter 160ms ease;
+  }
+  .shape[data-state="button"]  .face.button,
+  .shape[data-state="loader"]  .face.loader,
+  .shape[data-state="check"]   .face.check,
+  .shape[data-state="island"]  .face.island,
+  .shape[data-state="player"]  .face.player,
+  .shape[data-state="toggle"]  .face.toggle,
+  .shape[data-state="command"] .face.command,
+  .shape[data-state="toast"]   .face.toast {
+    opacity: 1; scale: 1; filter: none;
+    transition-delay: 180ms;               /* let the shape lead, content follows */
+  }
+
+  .button { color: var(--ink); font-weight: 650; font-size: 16px; }
+  .loader i { width: 22px; height: 22px; border-radius: 50%;
+              background: conic-gradient(var(--accent) 0 30%, transparent 0); animation: spin 0.8s linear infinite;
+              mask: radial-gradient(circle, transparent 7px, #000 8px); }
+  .check { color: var(--ink); font-size: 24px; font-weight: 700; }
+  .island .dot { width: 8px; height: 8px; border-radius: 50%; background: #ff5a4f; animation: pulse 1s ease-in-out infinite; }
+  .island .wave { display: flex; gap: 3px; align-items: center; height: 16px; }
+  .island .wave b { width: 3px; border-radius: 2px; background: var(--fg); animation: bar 0.9s ease-in-out infinite; }
+  .island .wave b:nth-child(2) { animation-delay: -0.3s; } .island .wave b:nth-child(3) { animation-delay: -0.6s; }
+  .island .wave b:nth-child(4) { animation-delay: -0.15s; }
+  .player { width: 280px; gap: 14px; }
+  .player .art { width: 56px; height: 56px; border-radius: 14px; background: linear-gradient(135deg, var(--accent), #5fd4ff); flex: none; }
+  .player .meta { flex: 1; display: grid; gap: 6px; }
+  .player .meta small { color: var(--muted); }
+  .player .bar { height: 4px; border-radius: 2px; background: #2a2c33; overflow: hidden; }
+  .player .bar::after { content: ""; display: block; height: 100%; width: 100%; background: var(--fg); transform-origin: left;
+                        animation: progress 2s linear infinite; }
+  .player .play { font-size: 18px; }
+  .toggle .knob { width: 30px; height: 30px; border-radius: 50%; background: #fff; translate: 18px 0;
+                  box-shadow: 0 2px 6px rgb(0 0 0 / 0.35); }
+  .command { width: 340px; color: var(--muted); }
+  .command kbd { font: inherit; font-size: 12px; color: var(--fg); padding: 3px 7px; border-radius: 6px; background: #2a2c33; }
+  .command span { flex: 1; }
+  .toast { gap: 10px; }
+  .toast .ok { width: 22px; height: 22px; border-radius: 50%; display: grid; place-items: center; background: var(--accent); color: var(--ink); font-size: 13px; font-weight: 800; }
+
+  @keyframes spin { to { rotate: 1turn; } }
+  @keyframes pulse { 50% { opacity: 0.35; } }
+  @keyframes bar { 0%, 100% { height: 4px; } 50% { height: 16px; } }
+  @keyframes progress { from { scale: 0 1; } to { scale: 1 1; } }
+
+  .controls { display: flex; gap: 10px; align-items: center; color: var(--muted); font-size: 13px; }
+  .controls button { font: inherit; color: var(--fg); background: #1b1d22; border: 1px solid #2a2c33; border-radius: 8px; padding: 6px 12px; cursor: pointer; }
+  .label { min-width: 7ch; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .shape, .face { transition-duration: 0ms !important; transition-delay: 0ms !important; }
+    .loader i, .island .dot, .island .wave b, .player .bar::after { animation: none; }
+  }
+  /* ?embed: just the shape (used by previews and the template page) */
+  html.embed .controls { display: none; }
+  html.embed .stage { zoom: 2; }
+  .face.island { color: #f2f0ea; }   /* the island is always black, so its text is always light */
+  .island .wave b { background: #f2f0ea; }
+  /* ?theme=light: warm paper, never pure white; accents one step darker so they keep their contrast */
+  html.light { color-scheme: light; --bg: #f1ede4; --fg: #1c1b18; --muted: #6d695f; --accent: #7da600; --line: #d9d2c3;
+               --card: #f7f4ed; --panel: #e9e3d6; --edge: rgb(40 32 16 / 0.1); --glow: 125 166 0; }
+  html.light { --ink: #f7f4ed; }
+  html.light .shape { box-shadow: 0 18px 40px -22px rgb(60 48 20 / 0.45), inset 0 0 0 1px rgb(40 32 16 / 0.06); }
+  html.light .player .bar, html.light .command kbd, html.light .controls button { background: #ddd6c6; }
+  html.light body { background: radial-gradient(60vmax 60vmax at 50% 45%, #f7f4ed, var(--bg)); }
+</style>
+</head>
+<body>
+<div class="stage">
+  <div class="shape" id="shape" role="button" tabindex="0" aria-label="Next state">
+    <div class="face button">Generate</div>
+    <div class="face loader"><i></i></div>
+    <div class="face check">✓</div>
+    <div class="face island"><span class="dot"></span>Recording<span class="wave"><b></b><b></b><b></b><b></b></span></div>
+    <div class="face player"><span class="art"></span><span class="meta"><strong>Night Drive</strong><small>Motion Atlas</small><span class="bar"></span></span><span class="play">❚❚</span></div>
+    <div class="face toggle"><span class="knob"></span></div>
+    <div class="face command"><kbd>⌘K</kbd><span>Search commands…</span><kbd>↵</kbd></div>
+    <div class="face toast"><span class="ok">✓</span>Saved to library</div>
+  </div>
+  <div class="controls">
+    <button id="pause" type="button">Pause</button>
+    <span class="label" id="label" aria-live="polite"></span>
+  </div>
+</div>
+<script>
+  // One row per state: size, radius, color, and how many beats it holds.
+  const STATES = [
+    { id: "button",  w: 168, h: 54, r: 27, c: "var(--accent)", beats: 2 },
+    { id: "loader",  w: 54,  h: 54, r: 27, c: "var(--panel)",  beats: 2 },
+    { id: "check",   w: 54,  h: 54, r: 27, c: "var(--accent)", beats: 1 },
+    { id: "island",  w: 230, h: 40, r: 20, c: "#000",          beats: 2 },
+    { id: "player",  w: 320, h: 92, r: 26, c: "var(--panel)",  beats: 3 },
+    { id: "toggle",  w: 76,  h: 40, r: 20, c: "var(--accent)", beats: 2 },
+    { id: "command", w: 380, h: 56, r: 14, c: "var(--panel)",  beats: 3 },
+    { id: "toast",   w: 280, h: 52, r: 16, c: "var(--panel)",  beats: 2 },
+  ];
+  const BPM = 120, BEAT = 60000 / BPM;
+  const shape = document.getElementById("shape");
+  const label = document.getElementById("label");
+  const pauseBtn = document.getElementById("pause");
+  const reduce = matchMedia("(prefers-reduced-motion: reduce)");
+
+  let i = 0, timer = null, playing = !reduce.matches;
+
+  function show(n) {
+    i = (n + STATES.length) % STATES.length;
+    const s = STATES[i];
+    shape.style.setProperty("--w", `${s.w}px`);
+    shape.style.setProperty("--h", `${s.h}px`);
+    shape.style.setProperty("--r", `${s.r}px`);
+    shape.style.setProperty("--c", s.c);
+    shape.dataset.state = s.id;
+    label.textContent = s.id;
+    clearTimeout(timer);
+    if (playing) timer = setTimeout(() => show(i + 1), s.beats * BEAT);
+  }
+  function setPlaying(p) {
+    playing = p; pauseBtn.textContent = p ? "Pause" : "Play";
+    p ? show(i) : clearTimeout(timer);
+  }
+
+  shape.addEventListener("click", () => show(i + 1));
+  shape.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); show(i + 1); } });
+  pauseBtn.addEventListener("click", () => setPlaying(!playing));
+  document.addEventListener("visibilitychange", () => document.hidden ? clearTimeout(timer) : playing && show(i));
+  show(0);
+  pauseBtn.textContent = playing ? "Pause" : "Play";
+</script>
+</body>
+</html>

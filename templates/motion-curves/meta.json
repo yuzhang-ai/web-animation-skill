@@ -1,0 +1,32 @@
+{
+  "id": "motion-curves",
+  "title": "Motion curves",
+  "summary": "A living easing reference: the same ball travels the same distance nine ways (linear, ease out/in/in-out, hard stop, overshoot, anticipation, spring, bounce), with physics-to-linear() helpers.",
+  "category": "transition",
+  "group": "native",
+  "stack": "Web Animations API + linear()",
+  "libs": [],
+  "useFor": [
+    "choosing an easing",
+    "design reviews",
+    "copying spring / bounce curves into CSS"
+  ],
+  "tags": [
+    "easing",
+    "spring",
+    "bounce",
+    "linear()",
+    "reference",
+    "motion-spec"
+  ],
+  "source": {
+    "mode": "original",
+    "author": "web-animation-skill",
+    "url": "https://github.com/yuzhang-ai/web-animation-skill",
+    "license": "MIT"
+  },
+  "check": {
+    "settle": 700,
+    "shot": "main"
+  }
+}

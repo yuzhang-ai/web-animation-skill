@@ -1,6 +1,6 @@
 ---
 name: web-animation
-description: Build real-time web animations and motion design — UI micro-interactions, enter/exit and page transitions, scroll-driven effects, SVG morphing, canvas/vector scenes, particles, 3D, and GIF/MP4 export of web animations. Covers native CSS/WAAPI/View Transitions plus GSAP, Motion (Framer Motion), Anime.js v4, Lottie, Rive, D3, Flubber, Konva, Two.js, Proton, and Three.js, with a brief→build→animate→refine→render workflow, motion tokens, art direction for showcase-grade pages, accessibility, and frame-by-frame verification.
+description: Build real-time web animations and motion design from a library of runnable effect templates (glow cards, text reveals, scroll layout morphs, fluid cursor, WebGL globe, ink transitions, spinners, springs) and a motion spec (easing by situation, durations, spring presets, control states) — UI micro-interactions, enter/exit and page transitions, scroll-driven effects, SVG morphing, canvas/vector scenes, particles, 3D, and GIF/MP4 export of web animations. Covers native CSS/WAAPI/View Transitions plus GSAP, Motion (Framer Motion), Anime.js v4, Lottie, Rive, D3, Flubber, Konva, Two.js, Proton, and Three.js, with a brief→build→animate→refine→render workflow, motion tokens, art direction for showcase-grade pages, accessibility, and frame-by-frame verification.
 metadata:
   tags: animation, motion-design, web, css, waapi, view-transitions, gsap, motion, framer-motion, animejs, lottie, rive, d3, flubber, konva, two-js, proton, three-js, particles, gif, accessibility
 ---
@@ -10,6 +10,17 @@ metadata:
 Use this skill for any **real-time animation in the browser**: hover and press feedback, enter/exit, page and route transitions, scroll reveals and scroll storytelling, SVG drawing and morphing, data-viz transitions, canvas and vector scenes, particles, 3D, and exporting any of these as GIF/MP4/WebM.
 
 This skill is **not** for rendering a video as the final product (explainers, promos). For that, use [Remotion](https://github.com/remotion-dev/skills) or [Motion Canvas](https://github.com/motion-canvas/motion-canvas).
+
+## Start from a template
+
+Effects built from a working example come out far better than effects invented from scratch. Before writing an effect:
+
+1. Read [templates/CATALOG.md](templates/CATALOG.md) and pick the closest template. It lists each one's effect, stack and use.
+2. Read that template's `prompt.md` (what it does, knobs, pitfalls), then its `index.html`. Each is one self-contained page that runs from pinned CDN URLs and has been checked in Chromium (no console errors, no sideways scroll at 390px, a working reduced-motion path).
+3. Copy the code into the project and adapt it: content, colours, timing, framework. Keep the reduced-motion branch and the cleanup.
+4. For timing and easing decisions (enter vs. leave, hard stop vs. overshoot, which spring, how each control state moves), follow [spec/motion.md](spec/motion.md).
+
+No template close enough? Build it with the workflow below, using the rule for the chosen library.
 
 ## Workflow (always)
 
@@ -110,6 +121,7 @@ animate(".dot", { scale: [0, 1], delay: stagger(40, { grid: [8, 8], from: "cente
 
 ## All rules
 
+- **Templates & spec:** [templates/CATALOG.md](templates/CATALOG.md) (runnable effects) · [spec/motion.md](spec/motion.md) (curves, durations, springs, control states)
 - **Process:** [workflow](rules/workflow.md) · [art-direction](rules/art-direction.md) · [choosing-library](rules/choosing-library.md) (incl. CDN loading) · [accessibility](rules/accessibility.md) · [performance](rules/performance.md) · [export](rules/export.md)
 - **Native:** [native-apis](rules/native-apis.md) (WAAPI, View Transitions, scroll-driven, `@property`, `@starting-style`, `linear()`) · [css-keyframes](rules/css-keyframes.md) · [scroll-animations](rules/scroll-animations.md)
 - **DOM / SVG libraries:** [motion](rules/motion.md) · [gsap](rules/gsap.md) · [animejs](rules/animejs.md) · [flubber](rules/flubber.md) · [d3](rules/d3.md)

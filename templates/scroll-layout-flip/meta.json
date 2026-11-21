@@ -1,0 +1,53 @@
+{
+  "id": "scroll-layout-flip",
+  "title": "Scroll layout flip",
+  "summary": "Galleries pin to the screen and morph into a new layout as you scroll: a row whose centre frame fills the screen, a grid that folds into a fanned deck, a bento that blows up past the edges.",
+  "category": "scroll",
+  "group": "gsap",
+  "stack": "GSAP Flip + ScrollTrigger",
+  "libs": [
+    {
+      "name": "gsap",
+      "version": "3.15.1",
+      "url": "https://cdn.jsdelivr.net/npm/gsap@3.15.1/dist/gsap.min.js",
+      "license": "GSAP Standard License (free)"
+    },
+    {
+      "name": "gsap/Flip",
+      "version": "3.15.1",
+      "url": "https://cdn.jsdelivr.net/npm/gsap@3.15.1/dist/Flip.min.js",
+      "license": "GSAP Standard License (free)"
+    },
+    {
+      "name": "gsap/ScrollTrigger",
+      "version": "3.15.1",
+      "url": "https://cdn.jsdelivr.net/npm/gsap@3.15.1/dist/ScrollTrigger.min.js",
+      "license": "GSAP Standard License (free)"
+    }
+  ],
+  "useFor": [
+    "portfolios",
+    "product storytelling",
+    "case studies",
+    "editorial pages"
+  ],
+  "tags": [
+    "flip",
+    "pin",
+    "scrub",
+    "layout-animation",
+    "gallery",
+    "bento"
+  ],
+  "source": {
+    "mode": "adapted",
+    "author": "Codrops",
+    "url": "https://github.com/codrops/ScrollBasedLayoutAnimations",
+    "license": "MIT"
+  },
+  "check": {
+    "scroll": 1500,
+    "after": 600,
+    "shot": "viewport"
+  }
+}

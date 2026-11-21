@@ -1,0 +1,39 @@
+{
+  "id": "canvas-editor",
+  "title": "Canvas editor",
+  "summary": "A mini design canvas: drag shapes, click to get rotate / resize handles, magnetic centre guides, and elastic snapping to a dot grid. Konva's Transformer does the heavy lifting.",
+  "category": "app",
+  "group": "konva",
+  "featured": true,
+  "stack": "Konva Transformer + Tween",
+  "libs": [
+    {
+      "name": "konva",
+      "version": "10.9.1",
+      "url": "https://cdn.jsdelivr.net/npm/konva@10.9.1/konva.min.js",
+      "license": "MIT"
+    }
+  ],
+  "useFor": [
+    "editors and whiteboards",
+    "configurators",
+    "sticker / collage tools",
+    "seat or floor planners"
+  ],
+  "tags": [
+    "konva",
+    "transformer",
+    "drag",
+    "snap",
+    "canvas-app"
+  ],
+  "source": {
+    "mode": "original",
+    "author": "web-animation-skill",
+    "url": "https://github.com/yuzhang-ai/web-animation-skill",
+    "license": "MIT"
+  },
+  "check": {
+    "settle": 1400
+  }
+}

@@ -1,0 +1,160 @@
+<!doctype html>
+<!--
+  Template: lottie-like-button — Lottie like button
+  Stack: lottie-web (SVG)
+  Credit: original for this repo (from the web-animation-skill showcase). MIT.
+  Change: replace buildHeart() with your designer's JSON (animationData or path); keep the segment frame numbers in sync.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lottie like button</title>
+<script>{ const q = new URLSearchParams(location.search); if (q.has("embed")) document.documentElement.classList.add("embed"); if (q.get("theme") === "light") document.documentElement.classList.add("light"); }</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500&family=Space+Grotesk:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0b0d; --card: #121418; --card-2: #16191e; --line: rgba(255,255,255,.07); --line-2: rgba(255,255,255,.12);
+    --ink: #f2f0ea; --muted: #8b909a; --dim: #4b505a;
+    --lime: #d7ff5a; --violet: #9a8cff; --cyan: #5fd4ff; --coral: #ff7a59;
+    --ease-out: cubic-bezier(0.16, 1, 0.3, 1); --ease-inout: cubic-bezier(0.65, 0, 0.35, 1);
+    --stage: #0d0e12; --tile: #262a33;
+  }
+  /* ?theme=light: warm paper, never pure white; accents one step darker so they keep their contrast */
+  html.light {
+    color-scheme: light;
+    --bg: #f1ede4; --card: #f7f4ed; --card-2: #fbf9f4; --line: rgba(40,32,16,.09); --line-2: rgba(40,32,16,.16);
+    --ink: #1c1b18; --muted: #6d695f; --dim: #a8a295;
+    --lime: #7da600; --violet: #6b58e8; --cyan: #0a92c9; --coral: #e8552f;
+    --stage: #ede8dd; --tile: #ddd6c6;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; overflow-x: clip; }
+  body { min-height: 100vh; display: grid; place-items: center; padding: 32px 16px; background: var(--bg); color: var(--ink);
+         font: 15px/1.45 "Space Grotesk", system-ui, sans-serif; }
+  .mono { font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 11px; letter-spacing: .08em; text-transform: uppercase; }
+  .frame { width: min(var(--w, 720px), calc(100vw - 32px)); }
+  .frame > h1 { margin: 0 0 4px; font: 400 clamp(30px, 4vw, 44px)/1 "Instrument Serif", serif; letter-spacing: -.02em; }
+  .frame > p { margin: 0 0 18px; color: var(--muted); }
+  .stage { position: relative; height: var(--h, 420px); border-radius: 24px; overflow: hidden;
+           background: linear-gradient(180deg, var(--card-2), var(--card)); box-shadow: inset 0 0 0 1px var(--line); }
+  .stage .hint { position: absolute; left: 16px; bottom: 12px; color: var(--dim); font-size: 10px; pointer-events: none; }
+  /* ?embed: just the effect, edge to edge (used by the template pages' preview) */
+  html.embed body { padding: 0; place-items: stretch; }
+  html.embed .frame { width: 100%; }
+  html.embed .frame > h1, html.embed .frame > p { display: none; }
+  html.embed .stage, html.embed .hero { height: 100vh; border-radius: 0; box-shadow: none; }
+  .lot-wrap { position: absolute; inset: 0; display: grid; grid-template-rows: 1fr auto; padding: 18px 22px 20px; }
+  .lot-btn { all: unset; justify-self: center; align-self: center; cursor: pointer; border-radius: 50%; }
+  .lot-btn:focus-visible { outline: 2px solid var(--lime); outline-offset: 6px; }
+  .lot { width: min(260px, 60vw); aspect-ratio: 1; }
+  .scrub { display: flex; align-items: center; gap: 12px; color: var(--muted); }
+  .scrub input { flex: 1; accent-color: var(--lime); }
+  .scrub output { color: var(--lime); min-width: 2ch; }
+</style>
+</head>
+<body>
+<main class="frame" style="--w:520px; --h:460px">
+  <h1>Lottie like button</h1>
+  <p>Lottie plays a designer's timeline as vectors, and lets you jump to any frame or play one segment.</p>
+  <div class="stage"><div class="lot-wrap">
+    <button class="lot-btn" id="like" aria-pressed="false" aria-label="Like"><div class="lot"></div></button>
+    <label class="scrub mono">frame <input id="scrub" type="range" min="0" max="59" value="0" aria-label="Scrub the animation"> <output id="frame">00</output></label>
+  </div></div>
+</main>
+<script src="https://cdn.jsdelivr.net/npm/lottie-web@5.13.0/build/player/lottie_light.min.js"></script>
+<script>
+  const $ = (s, el = document) => el.querySelector(s);
+  const $$ = (s, el = document) => [...el.querySelectorAll(s)];
+  // ?theme=light switches the palette; canvases read these values, CSS reads the variables
+  const LIGHT = document.documentElement.classList.contains("light");
+  const C = LIGHT
+    ? { lime: "#7da600", violet: "#6b58e8", cyan: "#0a92c9", coral: "#e8552f", ink: "#1c1b18", muted: "#6d695f", bg: "#f1ede4", card: "#f7f4ed", card2: "#fbf9f4",
+        stage: "#ede8dd", tile: "#ddd6c6", dim: "#a8a295", line2: "rgba(40,32,16,.16)", blend: "source-over", fade: (a) => `rgba(237,232,221,${a})` }
+    : { lime: "#d7ff5a", violet: "#9a8cff", cyan: "#5fd4ff", coral: "#ff7a59", ink: "#f2f0ea", muted: "#8b909a", bg: "#0a0b0d", card: "#121418", card2: "#16191e",
+        stage: "#0d0e12", tile: "#262a33", dim: "#4b505a", line2: "rgba(255,255,255,.12)", blend: "lighter", fade: (a) => `rgba(13,14,18,${a})` };
+  const PALETTE = [C.lime, C.violet, C.cyan, C.coral], P4 = () => PALETTE;
+  const isLight = () => LIGHT, onTheme = () => {};
+
+  const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const observeSize = (el, fn) => { const ro = new ResizeObserver(() => fn(el.clientWidth, el.clientHeight)); ro.observe(el); fn(el.clientWidth, el.clientHeight); return ro; };
+  const rafLoop = (fn) => { let raf = 0, last = 0; const tick = (now) => { const dt = last ? Math.min(now - last, 50) / 1000 : 1 / 60; last = now; fn(dt, now); raf = requestAnimationFrame(tick); };
+    return { start() { last = 0; cancelAnimationFrame(raf); raf = requestAnimationFrame(tick); }, stop() { cancelAnimationFrame(raf); } }; };
+  function run(el, api) {
+    if (reduce) { api.still?.(); return; }
+    let visible = false, running = false;
+    const sync = () => { const on = visible && !document.hidden; if (on && !running) { running = true; api.start?.(); } else if (!on && running) { running = false; api.stop?.(); } };
+    new IntersectionObserver(([e]) => { visible = e.isIntersecting; sync(); }, { rootMargin: "60px" }).observe(el);
+    document.addEventListener("visibilitychange", sync);
+  }
+
+{
+
+  // A multi-layer "like" animation authored as Lottie JSON, the format After Effects exports.
+  // Frames 0–40 = like, 40–60 = unlike. A designer's file would replace buildHeart().
+  function buildHeart() {
+    const FR = 60, OP = 60, rgb = (h) => { const n = parseInt(h.slice(1), 16); return [(n >> 16 & 255) / 255, (n >> 8 & 255) / 255, (n & 255) / 255, 1]; };
+    const ez = (n) => ({ i: { x: Array(n).fill(0.25), y: Array(n).fill(1) }, o: { x: Array(n).fill(0.4), y: Array(n).fill(0) } });
+    const anim = (keys, n = 1) => ({ a: 1, k: keys.map(([t, s], j) => (j < keys.length - 1 ? { t, s: [].concat(s), ...ez(n) } : { t, s: [].concat(s) })) });
+    const fixed = (v) => ({ a: 0, k: v });
+    // Heart outline: points sampled from the parametric heart, with Catmull-Rom Bézier handles
+    // (i = in, o = out, relative to each vertex). heartPath() returns a NEW object each call:
+    // lottie-web converts handles to absolute in place on load, so a path shared by two layers gets converted twice.
+    const N = 32, pts = Array.from({ length: N }, (_, i) => { const t = (i / N) * Math.PI * 2; return [2.1 * 16 * Math.sin(t) ** 3, -2.1 * (13 * Math.cos(t) - 5 * Math.cos(2 * t) - 2 * Math.cos(3 * t) - Math.cos(4 * t)) - 4]; });
+    const tan = pts.map((_, i) => { const a = pts[(i - 1 + N) % N], b = pts[(i + 1) % N]; return [(b[0] - a[0]) / 6, (b[1] - a[1]) / 6]; });
+    const heartPath = () => ({ ty: "sh", nm: "heart", ks: fixed({ c: true, v: pts.map((p) => [...p]), i: tan.map(([x, y]) => [-x, -y]), o: tan.map(([x, y]) => [x, y]) }) });
+    const tr = (extra = {}) => ({ ty: "tr", p: fixed([0, 0]), a: fixed([0, 0]), s: fixed([100, 100]), r: fixed(0), o: fixed(100), sk: fixed(0), sa: fixed(0), ...extra });
+    const layer = (ind, nm, ks, shapes) => ({ ddd: 0, ind, ty: 4, nm, sr: 1, ao: 0, ip: 0, op: OP, st: 0, bm: 0,
+      ks: { o: fixed(100), r: fixed(0), p: fixed([100, 100, 0]), a: fixed([0, 0, 0]), s: fixed([100, 100, 100]), ...ks }, shapes });
+
+    // 1 · outline: presses in (0–6), vanishes as the fill pops; comes back on unlike
+    const outline = layer(1, "outline",
+      { s: anim([[0, [100, 100, 100]], [6, [84, 84, 100]], [40, [84, 84, 100]], [48, [100, 100, 100]]], 3),
+        o: anim([[0, 100], [8, 100], [9, 0], [44, 0], [45, 100]]) },
+      [{ ty: "gr", nm: "g", it: [heartPath(), { ty: "st", c: fixed(rgb(C.muted)), o: fixed(100), w: fixed(5), lc: 2, lj: 2 }, tr()] }]);
+    // 2 · fill: pops from 0 past full size and settles (6–30); shrinks away on unlike (40–52)
+    const fill = layer(2, "fill",
+      { s: anim([[0, [0, 0, 100]], [6, [0, 0, 100]], [17, [124, 124, 100]], [26, [94, 94, 100]], [32, [100, 100, 100]], [40, [100, 100, 100]], [52, [0, 0, 100]]], 3) },
+      [{ ty: "gr", nm: "g", it: [heartPath(), { ty: "fl", c: fixed(rgb(C.coral)), o: fixed(100), r: 1 }, tr()] }]);
+    // 3 · burst lines: trim paths draw each ray out (10–20) and erase it from the root (14–26)
+    const rays = Array.from({ length: 8 }, (_, k) => {
+      const a = (k / 8) * Math.PI * 2 - Math.PI / 2, c = Math.cos(a), s = Math.sin(a);
+      return { ty: "gr", nm: "ray" + k, it: [
+        { ty: "sh", ks: fixed({ c: false, v: [[c * 56, s * 56], [c * 86, s * 86]], i: [[0, 0], [0, 0]], o: [[0, 0], [0, 0]] }) },
+        { ty: "tm", s: anim([[0, 0], [14, 0], [26, 100]]), e: anim([[0, 0], [10, 0], [20, 100]]), o: fixed(0), m: 1 },
+        { ty: "st", c: fixed(rgb(k % 2 ? C.lime : C.cyan)), o: fixed(100), w: fixed(5), lc: 2, lj: 2 }, tr()] };
+    });
+    const burst = layer(3, "burst", {}, rays);
+    // 4 · dots: fly outward and fade (12–32)
+    const dots = layer(4, "dots", {}, Array.from({ length: 8 }, (_, k) => {
+      const a = (k / 8) * Math.PI * 2 - Math.PI / 2 + Math.PI / 8, c = Math.cos(a), s = Math.sin(a);
+      return { ty: "gr", nm: "dot" + k, it: [
+        { ty: "el", d: 1, s: fixed([9, 9]), p: fixed([0, 0]) },
+        { ty: "fl", c: fixed(rgb(k % 2 ? C.violet : C.coral)), o: fixed(100), r: 1 },
+        tr({ p: anim([[0, [c * 40, s * 40]], [12, [c * 40, s * 40]], [32, [c * 92, s * 92]]], 2), o: anim([[0, 0], [12, 0], [13, 100], [24, 100], [32, 0]]) })] };
+    }));
+    // Lottie draws the LAST layer at the back
+    return { v: "5.7.4", fr: FR, ip: 0, op: OP, w: 200, h: 200, nm: "like", ddd: 0, assets: [], layers: [burst, dots, fill, outline] };
+  }
+
+  const card = $(".stage"), box = $(".lot"), scrub = $("#scrub"), frameOut = $("#frame"), btn = $("#like");
+  const anim = lottie.loadAnimation({ container: box, renderer: "svg", loop: false, autoplay: false, animationData: buildHeart() });
+  let liked = false, demo = 0;
+  anim.addEventListener("enterFrame", () => { const f = Math.round(anim.currentFrame); scrub.value = f; frameOut.textContent = String(f).padStart(2, "0"); });
+  // Segments: the same file holds both transitions; play only the part you need
+  const toggle = () => { liked = !liked; btn.setAttribute("aria-pressed", liked); anim.playSegments(liked ? [0, 40] : [40, 60], true); };
+  btn.addEventListener("click", () => { clearInterval(demo); toggle(); });
+  // Frame-exact scrubbing: goToAndStop(frame, true) jumps to any frame of the timeline
+  // (after playSegments, frame numbers are relative to that segment: set the full timeline back first)
+  scrub.addEventListener("input", () => { clearInterval(demo); anim.setSegment(0, 60); anim.goToAndStop(+scrub.value, true); frameOut.textContent = String(scrub.value).padStart(2, "0"); });
+  run(card, {
+    start() { anim.goToAndStop(0, true); demo = setInterval(toggle, 1600); toggle(); },
+    stop() { clearInterval(demo); anim.pause(); },
+    still() { anim.setSegment(0, 60); anim.goToAndStop(36, true); liked = true; btn.setAttribute("aria-pressed", "true"); },
+  });
+}
+</script>
+</body>
+</html>

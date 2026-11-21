@@ -5,6 +5,9 @@ on:
     branches: [master]
     paths:
       - "docs/**"
+      - "templates/**"
+      - "scripts/build-site.mjs"
+      - "scripts/pages.mjs"
       - ".github/workflows/pages.yml"
   workflow_dispatch:
 
@@ -28,10 +31,18 @@ jobs:
 
       - uses: actions/configure-pages@v6
 
-      # docs/ is the whole site: index.html + media/
+      # The site is docs/ (home, gallery) + templates/ + one generated page per template
+      # and language (scripts/build-site.mjs, no npm dependencies).
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+
+      - name: Assemble site
+        run: node scripts/build-site.mjs
+
       - uses: actions/upload-pages-artifact@v5
         with:
-          path: docs
+          path: _site
 
       - id: deployment
         uses: actions/deploy-pages@v5

@@ -1,0 +1,38 @@
+{
+  "id": "iridescent-blob",
+  "title": "Iridescent blob",
+  "summary": "A 40k-vertex sphere boils with simplex noise on the GPU, painted with a fresnel iridescence, orbited by two rings and a star field; the pointer steers it.",
+  "category": "3d",
+  "group": "webgl",
+  "featured": true,
+  "stack": "Three.js ShaderMaterial",
+  "libs": [
+    {
+      "name": "three",
+      "version": "0.187.0",
+      "url": "https://cdn.jsdelivr.net/npm/three@0.187.0/build/three.module.js",
+      "license": "MIT"
+    }
+  ],
+  "useFor": [
+    "hero visuals",
+    "AI / tech brand moments",
+    "loading screens"
+  ],
+  "tags": [
+    "shader",
+    "simplex-noise",
+    "fresnel",
+    "iridescence",
+    "three"
+  ],
+  "source": {
+    "mode": "original",
+    "author": "web-animation-skill",
+    "url": "https://github.com/yuzhang-ai/web-animation-skill",
+    "license": "MIT"
+  },
+  "check": {
+    "settle": 6000
+  }
+}

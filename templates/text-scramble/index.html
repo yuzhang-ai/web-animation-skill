@@ -1,0 +1,86 @@
+<!doctype html>
+<!--
+  Template: text-scramble — letters churn through random glyphs, then lock in left to right
+  Stack: vanilla JS + requestAnimationFrame, no library
+  Credit: "hacker text" effect popularised by Hyperplexed's CodePen (rNrJgrd).
+          Rewritten from scratch for this repo. MIT.
+  Change: GLYPHS, DURATION, SPREAD; works on any element with data-scramble.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Text scramble</title>
+<script>if (new URLSearchParams(location.search).get("theme") === "light") document.documentElement.classList.add("light");</script>
+<style>
+  :root { --bg: #0b0c0f; --fg: #ecebe6; --muted: #8b8b86; --accent: #d7ff5a; }
+  body {
+    margin: 0; min-height: 100vh; display: grid; place-content: center; gap: 28px; padding: 32px 16px;
+    background: var(--bg); color: var(--fg);
+    font: 16px/1.5 ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  }
+  /* Monospace keeps every glyph the same width, so the line never jumps while scrambling */
+  [data-scramble] {
+    font-family: ui-monospace, "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
+    text-transform: uppercase; letter-spacing: 0.02em; margin: 0; cursor: default;
+  }
+  h1[data-scramble] { font-size: clamp(32px, 8vw, 88px); line-height: 1; font-weight: 700; }
+  .menu { display: flex; flex-wrap: wrap; gap: 12px 28px; padding: 0; margin: 0; list-style: none; }
+  .menu a { color: var(--muted); text-decoration: none; font-size: 15px; }
+  .menu a:hover, .menu a:focus-visible { color: var(--accent); outline: none; }
+  .glyph { color: var(--accent); }                  /* letters still scrambling */
+  p.note { color: var(--muted); margin: 0; }
+  /* ?theme=light: warm paper, never pure white; accents one step darker so they keep their contrast */
+  html.light { color-scheme: light; --bg: #f1ede4; --fg: #1c1b18; --muted: #6d695f; --accent: #7da600; --line: #d9d2c3;
+               --card: #f7f4ed; --panel: #e9e3d6; --edge: rgb(40 32 16 / 0.1); --glow: 125 166 0; }
+</style>
+</head>
+<body>
+  <h1 data-scramble data-on="load hover">Decrypting</h1>
+  <ul class="menu">
+    <li><a href="#" data-scramble data-on="hover">Work</a></li>
+    <li><a href="#" data-scramble data-on="hover">Studio</a></li>
+    <li><a href="#" data-scramble data-on="hover">Journal</a></li>
+    <li><a href="#" data-scramble data-on="hover">Contact</a></li>
+  </ul>
+  <p class="note">Hover or focus a word.</p>
+<script>
+  const GLYPHS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789#%&*+=<>/";
+  const DURATION = 900;   // ms until the last letter locks
+  const SPREAD = 0.6;     // 0 = all letters lock together, 1 = strictly one after another
+  const reduce = matchMedia("(prefers-reduced-motion: reduce)");
+
+  function scramble(el) {
+    if (reduce.matches) return;
+    const text = el.dataset.text;
+    cancelAnimationFrame(el._raf);                 // retarget: restart cleanly if already running
+    const start = performance.now();
+    const lockAt = [...text].map((_, i) => (i / Math.max(1, text.length - 1)) * SPREAD * DURATION + (1 - SPREAD) * DURATION * Math.random());
+    let lastSwap = 0;
+    const frame = (now) => {
+      const t = now - start;
+      if (now - lastSwap > 45) {                   // swap glyphs ~22×/s, not every frame
+        lastSwap = now;
+        el.innerHTML = [...text].map((ch, i) =>
+          ch === " " || t >= lockAt[i] ? ch : `<span class="glyph">${GLYPHS[(Math.random() * GLYPHS.length) | 0]}</span>`
+        ).join("");
+      }
+      if (t < DURATION) el._raf = requestAnimationFrame(frame);
+      else el.textContent = text;
+    };
+    el._raf = requestAnimationFrame(frame);
+  }
+
+  for (const el of document.querySelectorAll("[data-scramble]")) {
+    el.dataset.text = el.textContent.trim();
+    el.setAttribute("aria-label", el.dataset.text);   // screen readers get the real word
+    const on = (el.dataset.on || "hover").split(" ");
+    if (on.includes("hover")) {
+      el.addEventListener("pointerenter", () => scramble(el));
+      el.addEventListener("focus", () => scramble(el));
+    }
+    if (on.includes("load")) scramble(el);
+  }
+</script>
+</body>
+</html>

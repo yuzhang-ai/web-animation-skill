@@ -1,0 +1,105 @@
+<!doctype html>
+<!--
+  Template: jelly-button — buttons that squash on press and wobble back like jelly
+  Stack: Web Animations API + a 15-line spring solver (no library)
+  Credit: original for this repo, inspired by "Jelly Button" pens on CodePen. MIT.
+  Change: data-stiffness / data-damping / data-squash per button.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Jelly button</title>
+<script>if (new URLSearchParams(location.search).get("theme") === "light") document.documentElement.classList.add("light");</script>
+<style>
+  :root { --bg: #0b0c0f; --fg: #ecebe6; --muted: #8b8b86; --accent: #d7ff5a; --ink: #0b0c0f; }
+  body {
+    margin: 0; min-height: 100vh; display: grid; place-content: center; gap: 40px; padding: 40px 16px;
+    background: var(--bg); color: var(--fg); text-align: center;
+    font: 16px/1.5 ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  }
+  h1 { margin: 0; font-size: clamp(26px, 4vw, 40px); letter-spacing: -0.02em; }
+  .row { display: flex; flex-wrap: wrap; justify-content: center; gap: 36px 44px; }
+  figure { margin: 0; display: grid; justify-items: center; gap: 14px; }
+  figcaption { color: var(--muted); font-size: 13px; }
+  figcaption code { color: var(--fg); }
+
+  .jelly {
+    font: 600 17px/1 inherit; font-family: inherit; color: var(--ink); background: var(--accent);
+    border: 0; border-radius: 999px; padding: 18px 34px; cursor: pointer;
+    -webkit-tap-highlight-color: transparent; touch-action: manipulation;
+    transition: filter 180ms ease;
+  }
+  .jelly:hover { filter: brightness(1.08); }
+  .jelly:focus-visible { outline: 2px solid var(--fg); outline-offset: 4px; }
+  .jelly.ghost { background: transparent; color: var(--accent); box-shadow: inset 0 0 0 2px var(--accent); }
+  .jelly.round { width: 72px; height: 72px; padding: 0; font-size: 26px; }
+  /* ?theme=light: warm paper, never pure white; accents one step darker so they keep their contrast */
+  html.light { color-scheme: light; --bg: #f1ede4; --fg: #1c1b18; --muted: #6d695f; --accent: #7da600; --line: #d9d2c3;
+               --card: #f7f4ed; --panel: #e9e3d6; --edge: rgb(40 32 16 / 0.1); --glow: 125 166 0; }
+  html.light { --ink: #f7f4ed; }
+</style>
+</head>
+<body>
+  <h1>Press and hold, then let go</h1>
+  <div class="row">
+    <figure>
+      <button class="jelly" data-stiffness="180" data-damping="9" data-squash="0.16">Soft</button>
+      <figcaption><code>k 180 · c 9</code> playful, consumer</figcaption>
+    </figure>
+    <figure>
+      <button class="jelly ghost" data-stiffness="320" data-damping="16" data-squash="0.12">Balanced</button>
+      <figcaption><code>k 320 · c 16</code> default UI</figcaption>
+    </figure>
+    <figure>
+      <button class="jelly round" data-stiffness="520" data-damping="26" data-squash="0.1" aria-label="Like">♥</button>
+      <figcaption><code>k 520 · c 26</code> firm, pro tools</figcaption>
+    </figure>
+  </div>
+<script>
+  const reduce = matchMedia("(prefers-reduced-motion: reduce)");
+
+  // Damped spring from x0 to 0 (mass 1). Returns samples every 1/60s until it settles.
+  function spring(x0, k, c) {
+    const out = []; let x = x0, v = 0; const dt = 1 / 60;
+    for (let i = 0; i < 180; i++) {
+      out.push(x);
+      const a = -k * x - c * v; v += a * dt; x += v * dt;
+      if (Math.abs(x) < 0.001 && Math.abs(v) < 0.01) break;
+    }
+    out.push(0);
+    return out;
+  }
+
+  for (const btn of document.querySelectorAll(".jelly")) {
+    const k = +btn.dataset.stiffness, c = +btn.dataset.damping, squash = +btn.dataset.squash;
+    let anim;
+
+    const press = () => {
+      if (reduce.matches) return;
+      anim?.cancel();
+      // Squash fast and flat: wider, shorter. Volume roughly preserved.
+      anim = btn.animate([{ scale: `${1 + squash} ${1 - squash}` }],
+        { duration: 110, easing: "cubic-bezier(0.2, 0.8, 0.3, 1)", fill: "forwards" });
+    };
+    const release = () => {
+      if (reduce.matches || !anim) return;
+      // Start from wherever the squash got to, so a quick tap wobbles less than a long press
+      const sx = parseFloat(getComputedStyle(btn).scale);   // "none" → NaN
+      const d0 = Number.isFinite(sx) ? sx - 1 : 0;
+      anim.cancel();
+      const samples = spring(d0, k, c);
+      anim = btn.animate(samples.map((d) => ({ scale: `${1 + d} ${1 - d}` })),
+        { duration: samples.length * (1000 / 60), easing: "linear" });
+      anim.onfinish = () => (anim = null);
+    };
+
+    btn.addEventListener("pointerdown", press);
+    btn.addEventListener("pointerup", release);
+    btn.addEventListener("pointerleave", release);
+    btn.addEventListener("keydown", (e) => { if ((e.key === " " || e.key === "Enter") && !e.repeat) press(); });
+    btn.addEventListener("keyup", (e) => { if (e.key === " " || e.key === "Enter") release(); });
+  }
+</script>
+</body>
+</html>

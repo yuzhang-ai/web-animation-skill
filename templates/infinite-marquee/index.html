@@ -1,0 +1,88 @@
+<!doctype html>
+<!--
+  Template: infinite-marquee — rows of logos/tags that scroll forever, faded at the edges
+  Stack: pure CSS animation + 6 lines of JS to duplicate the items
+  Credit: progressive-enhancement approach from Kevin Powell's CodePen (LYMXPaJ) and video.
+          Rewritten from scratch for this repo. MIT.
+  Change: data-speed (seconds per loop), data-direction, the items.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Infinite marquee</title>
+<script>if (new URLSearchParams(location.search).get("theme") === "light") document.documentElement.classList.add("light");</script>
+<style>
+  :root { --bg: #0b0c0f; --fg: #ecebe6; --muted: #8b8b86; --line: #24262c; --accent: #d7ff5a; --gap: 14px; }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; min-height: 100vh; display: grid; place-content: center; gap: 22px; padding: 40px 0;
+    background: var(--bg); color: var(--fg); overflow-x: clip;
+    font: 16px/1.5 ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  }
+  h1 { text-align: center; margin: 0 16px 18px; font-size: clamp(26px, 4vw, 40px); letter-spacing: -0.02em; }
+
+  /* Without JS or with reduced motion: a plain wrapped list. Animation is an enhancement. */
+  .marquee { width: min(1100px, 100vw); margin-inline: auto; }
+  .marquee ul { display: flex; flex-wrap: wrap; justify-content: center; gap: var(--gap); padding: 0 16px; margin: 0; list-style: none; }
+  .marquee li {
+    flex: none; padding: 10px 18px; border: 1px solid var(--line); border-radius: 999px;
+    color: var(--muted); white-space: nowrap; font-size: 15px;
+  }
+  .marquee li b { color: var(--fg); font-weight: 600; }
+  .marquee li.hot { border-color: color-mix(in srgb, var(--accent) 50%, var(--line)); color: var(--accent); }
+
+  .marquee[data-animated] {
+    overflow: hidden;
+    /* Fade both edges so items appear and vanish instead of being cut */
+    mask-image: linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent);
+  }
+  .marquee[data-animated] ul {
+    flex-wrap: nowrap; width: max-content; padding: 0; justify-content: flex-start;
+    /* The list holds two copies; moving by half (+ half a gap) lands exactly on the start */
+    animation: marquee var(--speed, 40s) linear infinite;
+  }
+  .marquee[data-direction="right"] ul { animation-direction: reverse; }
+  .marquee[data-animated]:hover ul { animation-play-state: paused; }
+  @keyframes marquee { to { translate: calc(-50% - var(--gap) / 2); } }
+  /* ?theme=light: warm paper, never pure white; accents one step darker so they keep their contrast */
+  html.light { color-scheme: light; --bg: #f1ede4; --fg: #1c1b18; --muted: #6d695f; --accent: #7da600; --line: #d9d2c3;
+               --card: #f7f4ed; --panel: #e9e3d6; --edge: rgb(40 32 16 / 0.1); --glow: 125 166 0; }
+</style>
+</head>
+<body>
+  <h1>Trusted by teams who ship</h1>
+  <div class="marquee" data-speed="38">
+    <ul>
+      <li><b>Northwind</b></li><li class="hot">Lumen Labs</li><li><b>Atlas</b> Freight</li><li>Kite &amp; Co</li>
+      <li><b>Halcyon</b></li><li>Orbital</li><li class="hot">Fieldnote</li><li><b>Parallel</b></li>
+    </ul>
+  </div>
+  <div class="marquee" data-speed="52" data-direction="right">
+    <ul>
+      <li>GSAP</li><li>WebGL</li><li class="hot">View Transitions</li><li>Motion</li><li>SVG</li>
+      <li>Three.js</li><li>CSS scroll-driven</li><li>Canvas</li><li class="hot">Shaders</li><li>Lottie</li>
+    </ul>
+  </div>
+<script>
+  if (!matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    for (const m of document.querySelectorAll(".marquee")) {
+      m.dataset.animated = "";
+      m.style.setProperty("--speed", `${m.dataset.speed || 40}s`);
+      const ul = m.querySelector("ul");
+      const items = [...ul.children];
+      const addSet = () => items.forEach((li) => {
+        const copy = li.cloneNode(true);
+        copy.setAttribute("aria-hidden", "true");      // screen readers hear each item once
+        ul.append(copy);
+      });
+      // One half must be at least as wide as the row, or a gap shows before the loop restarts
+      while (ul.scrollWidth < m.clientWidth) addSet();
+      [...ul.children].forEach((li) => {               // then double it: two identical halves
+        const copy = li.cloneNode(true); copy.setAttribute("aria-hidden", "true"); ul.append(copy);
+      });
+    }
+  }
+</script>
+</body>
+</html>

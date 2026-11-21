@@ -1,0 +1,46 @@
+{
+  "id": "motion-path-timeline",
+  "title": "Motion path timeline",
+  "summary": "A comet travels a curved path through five steps; DrawSVG paints the trail behind it and each node pops as it arrives. One looping GSAP timeline.",
+  "category": "diagram",
+  "group": "gsap",
+  "featured": true,
+  "stack": "GSAP MotionPath + DrawSVG",
+  "libs": [
+    {
+      "name": "gsap",
+      "version": "3.15.1",
+      "url": "https://cdn.jsdelivr.net/npm/gsap@3.15.1/dist/gsap.min.js",
+      "license": "GSAP Standard License (free)"
+    },
+    {
+      "name": "gsap/MotionPathPlugin",
+      "version": "3.15.1",
+      "url": "https://cdn.jsdelivr.net/npm/gsap@3.15.1/dist/MotionPathPlugin.min.js",
+      "license": "GSAP Standard License (free)"
+    },
+    {
+      "name": "gsap/DrawSVGPlugin",
+      "version": "3.15.1",
+      "url": "https://cdn.jsdelivr.net/npm/gsap@3.15.1/dist/DrawSVGPlugin.min.js",
+      "license": "GSAP Standard License (free)"
+    }
+  ],
+  "useFor": [
+    "process / how-it-works sections",
+    "onboarding steps",
+    "roadmaps"
+  ],
+  "tags": [
+    "motionpath",
+    "drawsvg",
+    "timeline",
+    "svg"
+  ],
+  "source": {
+    "mode": "original",
+    "author": "web-animation-skill",
+    "url": "https://github.com/yuzhang-ai/web-animation-skill",
+    "license": "MIT"
+  }
+}

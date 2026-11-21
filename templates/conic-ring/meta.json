@@ -1,0 +1,27 @@
+{
+  "id": "conic-ring",
+  "title": "Conic ring",
+  "summary": "A rainbow ring spins around a morphing blob with zero JavaScript: @property makes a gradient angle animatable, and border-radius keyframes do the morph.",
+  "category": "loader",
+  "group": "native",
+  "stack": "CSS @property + conic-gradient",
+  "libs": [],
+  "useFor": [
+    "AI / assistant avatars",
+    "loading states",
+    "status orbs",
+    "animated borders"
+  ],
+  "tags": [
+    "@property",
+    "conic-gradient",
+    "border-radius",
+    "zero-js"
+  ],
+  "source": {
+    "mode": "original",
+    "author": "web-animation-skill",
+    "url": "https://github.com/yuzhang-ai/web-animation-skill",
+    "license": "MIT"
+  }
+}

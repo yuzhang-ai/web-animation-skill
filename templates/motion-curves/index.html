@@ -1,0 +1,136 @@
+<!doctype html>
+<!--
+  Template: motion-curves — the same ball, the same distance, nine ways to move (a living easing reference)
+  Stack: Web Animations API + linear() for springs and bounces (no library)
+  Credit: original for this repo. MIT. Companion to spec/motion.md.
+  Change: CURVES. springToLinear(k, c, m) and bounceToLinear() turn physics into a CSS easing you can reuse.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Motion curves</title>
+<script>if (new URLSearchParams(location.search).get("theme") === "light") document.documentElement.classList.add("light");</script>
+<style>
+  :root { --bg: #0b0c0f; --fg: #ecebe6; --muted: #8b8b86; --line: #23252b; --accent: #d7ff5a; --ball: 22px; }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; min-height: 100vh; padding: 40px 16px; display: grid; place-content: center;
+    background: var(--bg); color: var(--fg); font: 15px/1.4 ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  }
+  main { width: min(1000px, calc(100vw - 32px)); }
+  header { display: flex; justify-content: space-between; align-items: end; gap: 16px; flex-wrap: wrap; margin-bottom: 22px; }
+  h1 { margin: 0; font-size: clamp(24px, 3.4vw, 36px); letter-spacing: -0.02em; }
+  header p { margin: 4px 0 0; color: var(--muted); }
+  button { font: inherit; color: var(--bg); background: var(--accent); border: 0; border-radius: 999px; padding: 8px 18px; font-weight: 600; cursor: pointer; }
+
+  .lane { display: grid; grid-template-columns: 220px 1fr; align-items: center; gap: 18px; padding: 10px 0; border-top: 1px solid var(--line); cursor: pointer; }
+  .lane:hover .name { color: var(--accent); }
+  .name { font-weight: 600; }
+  .use { color: var(--muted); font-size: 13px; }
+  code { font: 12px ui-monospace, Menlo, Consolas, monospace; color: var(--muted); }
+  .track { position: relative; height: 34px; }
+  /* Ball travels from 6% to 88%: overshoot, anticipation and springs need room past both ends */
+  .track::before { content: ""; position: absolute; left: 6%; right: 12%; top: 50%; height: 1px; background: var(--line); }
+  .track::after { content: ""; position: absolute; right: 12%; top: 4px; bottom: 4px; width: 2px; background: #3a3d45; border-radius: 1px; }
+  .ball { position: absolute; left: 6%; top: calc(50% - var(--ball) / 2); width: var(--ball); height: var(--ball); border-radius: 50%; background: var(--fg); }
+  .lane:nth-child(odd) .ball { background: var(--accent); }
+
+  @media (max-width: 640px) {
+    .lane { grid-template-columns: 1fr; gap: 6px; }
+  }
+  /* ?theme=light: warm paper, never pure white; accents one step darker so they keep their contrast */
+  html.light { color-scheme: light; --bg: #f1ede4; --fg: #1c1b18; --muted: #6d695f; --accent: #7da600; --line: #d9d2c3;
+               --card: #f7f4ed; --panel: #e9e3d6; --edge: rgb(40 32 16 / 0.1); --glow: 125 166 0; }
+  html.light .track::after { background: #b9b2a3; }
+  html.light button { color: #f7f4ed; }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <div>
+      <h1>Same ball, nine ways to move</h1>
+      <p>Same distance, same moment. Click a row to replay it alone.</p>
+    </div>
+    <button id="play" type="button">Replay all</button>
+  </header>
+  <section id="lanes"></section>
+</main>
+<script>
+  // ---- physics → CSS easing -------------------------------------------------
+  // Damped spring from 0 to 1, sampled into a CSS linear() easing. Returns { easing, duration }.
+  function springToLinear(k = 320, c = 26, m = 1) {
+    const dt = 1 / 120, pts = []; let x = 0, v = 0, t = 0;
+    while (t < 4) {
+      pts.push(x);
+      const a = (-k * (x - 1) - c * v) / m; v += a * dt; x += v * dt; t += dt;
+      if (Math.abs(x - 1) < 0.0005 && Math.abs(v) < 0.005) break;
+    }
+    pts.push(1);
+    const step = Math.max(1, Math.round(pts.length / 60));            // ~60 points is plenty
+    const kept = pts.filter((_, i) => i % step === 0); kept[kept.length - 1] = 1;
+    return { easing: `linear(${kept.map((p) => +p.toFixed(4)).join(", ")})`, duration: Math.round(t * 1000) };
+  }
+  // Classic bounce-out (three bounces), sampled into linear()
+  function bounceToLinear(n = 60) {
+    const f = (t) => { const a = 7.5625, d = 2.75;
+      if (t < 1 / d) return a * t * t;
+      if (t < 2 / d) return a * (t -= 1.5 / d) * t + 0.75;
+      if (t < 2.5 / d) return a * (t -= 2.25 / d) * t + 0.9375;
+      return a * (t -= 2.625 / d) * t + 0.984375; };
+    return `linear(${Array.from({ length: n + 1 }, (_, i) => +f(i / n).toFixed(4)).join(", ")})`;
+  }
+
+  const spring = springToLinear(220, 16, 1);
+  const D = 900;
+  // name, what it's for, easing, duration, optional impact squash at the end
+  const CURVES = [
+    { name: "Linear",          use: "spinners, marquees, scrub",       easing: "linear", label: "linear" },
+    { name: "Ease out",        use: "entering: appears, opens",        easing: "cubic-bezier(0.16, 1, 0.3, 1)" },
+    { name: "Ease in",         use: "leaving: dismissed, closes",      easing: "cubic-bezier(0.7, 0, 0.84, 0)" },
+    { name: "Ease in-out",     use: "moving A → B on screen",          easing: "cubic-bezier(0.65, 0, 0.35, 1)" },
+    { name: "Hard stop",       use: "hits a wall, snaps into a slot",  easing: "cubic-bezier(0.55, 0, 1, 0.45)", impact: true },
+    { name: "Overshoot",       use: "pops in: toast, badge, like",     easing: "cubic-bezier(0.34, 1.56, 0.64, 1)" },
+    { name: "Anticipation",    use: "winds up, then launches",         easing: "cubic-bezier(0.36, 0, 0.66, -0.56)" },
+    { name: "Spring",          use: "gestures, interruptible UI",      easing: spring.easing, duration: spring.duration, label: "spring k220 c16" },
+    { name: "Bounce",          use: "falls and lands",                 easing: bounceToLinear(), label: "bounce (linear())" },
+  ];
+
+  const lanes = document.getElementById("lanes");
+  for (const c of CURVES) {
+    const el = document.createElement("div");
+    el.className = "lane";
+    el.innerHTML = `<div><div class="name">${c.name}</div><div class="use">${c.use}</div>
+      <code>${c.label || c.easing}</code></div><div class="track"><div class="ball"></div></div>`;
+    lanes.append(el);
+    c.el = el; c.ball = el.querySelector(".ball"); c.track = el.querySelector(".track");
+    el.addEventListener("click", () => play(c));
+  }
+
+  const reduce = matchMedia("(prefers-reduced-motion: reduce)");
+  function play(c) {
+    const dist = c.track.clientWidth * 0.82 - c.ball.offsetWidth;   // 6% → 88%
+    c.ball.getAnimations().forEach((a) => a.cancel());
+    const dur = c.duration || D;
+    const move = c.ball.animate([{ translate: "0 0" }, { translate: `${dist}px 0` }],
+      { duration: reduce.matches ? 0 : dur, easing: c.easing, fill: "forwards" });
+    // Hard stop: no braking, so sell the impact with a tiny squash against the wall
+    // (translate and scale are separate properties, so the two animations don't fight)
+    if (c.impact && !reduce.matches) {
+      c.ball.style.transformOrigin = "100% 50%";
+      move.finished.then(() => c.ball.animate(
+        [{ scale: "1 1" }, { scale: "0.8 1.15" }, { scale: "1 1" }], { duration: 160, easing: "ease-out" })).catch(() => {});
+    }
+  }
+  const playAll = () => CURVES.forEach(play);
+  document.getElementById("play").addEventListener("click", playAll);
+
+  // Autoplay on a loop (not under reduced motion); stop while the tab is hidden
+  let timer;
+  const loop = () => { playAll(); timer = setTimeout(loop, 2600); };
+  if (reduce.matches) CURVES.forEach(play); else loop();
+  document.addEventListener("visibilitychange", () => { clearTimeout(timer); if (!document.hidden && !reduce.matches) loop(); });
+</script>
+</body>
+</html>

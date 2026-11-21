@@ -1,0 +1,38 @@
+{
+  "id": "dot-globe",
+  "title": "Dot globe",
+  "summary": "A slowly rotating dotted WebGL globe with glowing markers, arcs between cities and labels that fade when they turn behind it. Drag to spin.",
+  "category": "3d",
+  "group": "webgl",
+  "stack": "COBE (WebGL, 5KB)",
+  "libs": [
+    {
+      "name": "cobe",
+      "version": "2.0.1",
+      "url": "https://cdn.jsdelivr.net/npm/cobe@2.0.1/+esm",
+      "license": "MIT"
+    }
+  ],
+  "useFor": [
+    "hero sections",
+    "global network / CDN / payments pages",
+    "\"customers worldwide\" sections"
+  ],
+  "tags": [
+    "globe",
+    "webgl",
+    "markers",
+    "arcs",
+    "anchor-positioning"
+  ],
+  "source": {
+    "mode": "adapted",
+    "author": "Shu Ding (COBE library)",
+    "url": "https://github.com/shuding/cobe",
+    "license": "MIT"
+  },
+  "check": {
+    "settle": 1800,
+    "shot": ".wrap"
+  }
+}

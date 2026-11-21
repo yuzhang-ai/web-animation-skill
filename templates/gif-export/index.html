@@ -1,0 +1,151 @@
+<!doctype html>
+<!--
+  Template: gif-export — GIF export
+  Stack: Canvas + gifenc
+  Credit: original for this repo (from the web-animation-skill showcase). MIT.
+  Change: draw() (your animation), S (size), N (frames), delay, palette size.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GIF export</title>
+<script>{ const q = new URLSearchParams(location.search); if (q.has("embed")) document.documentElement.classList.add("embed"); if (q.get("theme") === "light") document.documentElement.classList.add("light"); }</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500&family=Space+Grotesk:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0b0d; --card: #121418; --card-2: #16191e; --line: rgba(255,255,255,.07); --line-2: rgba(255,255,255,.12);
+    --ink: #f2f0ea; --muted: #8b909a; --dim: #4b505a;
+    --lime: #d7ff5a; --violet: #9a8cff; --cyan: #5fd4ff; --coral: #ff7a59;
+    --ease-out: cubic-bezier(0.16, 1, 0.3, 1); --ease-inout: cubic-bezier(0.65, 0, 0.35, 1);
+    --stage: #0d0e12; --tile: #262a33;
+  }
+  /* ?theme=light: warm paper, never pure white; accents one step darker so they keep their contrast */
+  html.light {
+    color-scheme: light;
+    --bg: #f1ede4; --card: #f7f4ed; --card-2: #fbf9f4; --line: rgba(40,32,16,.09); --line-2: rgba(40,32,16,.16);
+    --ink: #1c1b18; --muted: #6d695f; --dim: #a8a295;
+    --lime: #7da600; --violet: #6b58e8; --cyan: #0a92c9; --coral: #e8552f;
+    --stage: #ede8dd; --tile: #ddd6c6;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; overflow-x: clip; }
+  body { min-height: 100vh; display: grid; place-items: center; padding: 32px 16px; background: var(--bg); color: var(--ink);
+         font: 15px/1.45 "Space Grotesk", system-ui, sans-serif; }
+  .mono { font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 11px; letter-spacing: .08em; text-transform: uppercase; }
+  .frame { width: min(var(--w, 720px), calc(100vw - 32px)); }
+  .frame > h1 { margin: 0 0 4px; font: 400 clamp(30px, 4vw, 44px)/1 "Instrument Serif", serif; letter-spacing: -.02em; }
+  .frame > p { margin: 0 0 18px; color: var(--muted); }
+  .stage { position: relative; height: var(--h, 420px); border-radius: 24px; overflow: hidden;
+           background: linear-gradient(180deg, var(--card-2), var(--card)); box-shadow: inset 0 0 0 1px var(--line); }
+  .stage .hint { position: absolute; left: 16px; bottom: 12px; color: var(--dim); font-size: 10px; pointer-events: none; }
+  /* ?embed: just the effect, edge to edge (used by the template pages' preview) */
+  html.embed body { padding: 0; place-items: stretch; }
+  html.embed .frame { width: 100%; }
+  html.embed .frame > h1, html.embed .frame > p { display: none; }
+  html.embed .stage, html.embed .hero { height: 100vh; border-radius: 0; box-shadow: none; }
+  .gif { position: absolute; inset: 24px; display: grid; grid-template-columns: auto auto 1fr; gap: 18px; align-items: center; }
+  .gif .frame { position: relative; width: min(200px, 38vw); aspect-ratio: 1; border-radius: 16px; overflow: hidden; background: var(--stage); box-shadow: inset 0 0 0 1px var(--line); }
+  .gif canvas, .gif img { width: 100%; height: 100%; display: block; }
+  .gif .frame span { position: absolute; left: 7px; top: 7px; padding: 2px 7px; border-radius: 99px; background: rgba(10,11,13,.7); color: var(--muted); font-size: 9px; }
+  .gif .info { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+  .gif .meta { color: var(--lime); font-size: 10px; line-height: 1.6; }
+  .gif .note { margin: 0; color: var(--muted); font-size: 13px; }
+  .gif .note code { color: var(--ink); }
+  .gif .actions { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+  .gif button { font: 500 10px "JetBrains Mono", monospace; letter-spacing: .06em; text-transform: uppercase; padding: 7px 11px; border-radius: 99px; border: 0; box-shadow: inset 0 0 0 1px var(--line-2); background: transparent; color: var(--ink); cursor: pointer; }
+  .gif button:hover { box-shadow: inset 0 0 0 1px var(--lime); color: var(--lime); }
+  .gif .actions a { color: var(--muted); font-size: 10px; }
+  @media (max-width: 620px) { .gif { grid-template-columns: 1fr 1fr; } .gif .info { grid-column: 1 / -1; } .gif .note { display: none; } }
+</style>
+</head>
+<body>
+<main class="frame" style="--w:720px; --h:320px">
+  <h1>GIF export</h1>
+  <p>Draw every frame as a function of t ∈ [0, 1) and the loop is seamless and the export exact.</p>
+  <div class="stage"><div class="gif">
+    <div class="frame"><canvas width="264" height="264"></canvas><span class="mono">canvas</span></div>
+    <div class="frame"><img alt="GIF encoded from the canvas animation" width="132" height="132"><span class="mono">.gif</span></div>
+    <div class="info">
+      <div class="meta mono">encoding…</div>
+      <p class="note">Frames are drawn from <code>t</code>, not the clock, so the loop is seamless and the export is deterministic.</p>
+      <div class="actions"><button type="button" data-encode>Encode again</button><a download="loop.gif" hidden>Save ↓</a></div>
+    </div>
+  </div></div>
+</main>
+
+<script type="module">
+  const $ = (s, el = document) => el.querySelector(s);
+  const $$ = (s, el = document) => [...el.querySelectorAll(s)];
+  // ?theme=light switches the palette; canvases read these values, CSS reads the variables
+  const LIGHT = document.documentElement.classList.contains("light");
+  const C = LIGHT
+    ? { lime: "#7da600", violet: "#6b58e8", cyan: "#0a92c9", coral: "#e8552f", ink: "#1c1b18", muted: "#6d695f", bg: "#f1ede4", card: "#f7f4ed", card2: "#fbf9f4",
+        stage: "#ede8dd", tile: "#ddd6c6", dim: "#a8a295", line2: "rgba(40,32,16,.16)", blend: "source-over", fade: (a) => `rgba(237,232,221,${a})` }
+    : { lime: "#d7ff5a", violet: "#9a8cff", cyan: "#5fd4ff", coral: "#ff7a59", ink: "#f2f0ea", muted: "#8b909a", bg: "#0a0b0d", card: "#121418", card2: "#16191e",
+        stage: "#0d0e12", tile: "#262a33", dim: "#4b505a", line2: "rgba(255,255,255,.12)", blend: "lighter", fade: (a) => `rgba(13,14,18,${a})` };
+  const PALETTE = [C.lime, C.violet, C.cyan, C.coral], P4 = () => PALETTE;
+  const isLight = () => LIGHT, onTheme = () => {};
+
+  const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const observeSize = (el, fn) => { const ro = new ResizeObserver(() => fn(el.clientWidth, el.clientHeight)); ro.observe(el); fn(el.clientWidth, el.clientHeight); return ro; };
+  const rafLoop = (fn) => { let raf = 0, last = 0; const tick = (now) => { const dt = last ? Math.min(now - last, 50) / 1000 : 1 / 60; last = now; fn(dt, now); raf = requestAnimationFrame(tick); };
+    return { start() { last = 0; cancelAnimationFrame(raf); raf = requestAnimationFrame(tick); }, stop() { cancelAnimationFrame(raf); } }; };
+  function run(el, api) {
+    if (reduce) { api.still?.(); return; }
+    let visible = false, running = false;
+    const sync = () => { const on = visible && !document.hidden; if (on && !running) { running = true; api.start?.(); } else if (!on && running) { running = false; api.stop?.(); } };
+    new IntersectionObserver(([e]) => { visible = e.isIntersecting; sync(); }, { rootMargin: "60px" }).observe(el);
+    document.addEventListener("visibilitychange", sync);
+  }
+
+const card = $(".stage");
+  const { GIFEncoder, quantize, applyPalette } = await import("https://cdn.jsdelivr.net/npm/gifenc@1.0.3/dist/gifenc.esm.js");
+  const live = $("canvas", card), img = $("img", card), meta = $(".meta", card), save = $(".actions a", card), btn = $("[data-encode]", card);
+  const lctx = live.getContext("2d");
+  function draw(ctx, t, S) {   // everything is a function of t ∈ [0,1) → perfect loop
+    ctx.fillStyle = C.stage; ctx.fillRect(0, 0, S, S);
+    ctx.lineCap = "round";
+    for (let k = 0; k < 4; k++) {
+      const a0 = t * Math.PI * 2 * (k % 2 ? -1 : 1) + k * 0.9, len = Math.PI * (0.5 + 0.4 * Math.sin(t * Math.PI * 2 + k));
+      ctx.strokeStyle = P4()[k]; ctx.lineWidth = S * 0.045;
+      ctx.beginPath(); ctx.arc(S / 2, S / 2, S * (0.14 + k * 0.08), a0, a0 + len); ctx.stroke();
+    }
+    ctx.fillStyle = C.ink; ctx.beginPath(); ctx.arc(S / 2, S / 2, S * (0.04 + 0.015 * Math.sin(t * Math.PI * 4)), 0, Math.PI * 2); ctx.fill();
+  }
+  let gifURL = "", stillURL = "", encoded = false;
+  async function encode() {
+    meta.textContent = "encoding…"; await new Promise((r) => setTimeout(r, 30));
+    const S = 132, N = 40, t0 = performance.now();
+    const c = document.createElement("canvas"); c.width = c.height = S;
+    const ctx = c.getContext("2d", { willReadFrequently: true });
+    const gif = GIFEncoder(); let palette;
+    for (let i = 0; i < N; i++) {
+      draw(ctx, i / N, S);
+      const { data } = ctx.getImageData(0, 0, S, S);
+      if (!palette) palette = quantize(data, 128);
+      if (i === 0) stillURL = c.toDataURL();
+      gif.writeFrame(applyPalette(data, palette), S, S, { palette, delay: 50 });
+    }
+    gif.finish();
+    const blob = new Blob([gif.bytes()], { type: "image/gif" });
+    if (gifURL) URL.revokeObjectURL(gifURL);
+    gifURL = URL.createObjectURL(blob);
+    img.src = reduce ? stillURL : gifURL; save.href = gifURL; save.hidden = false;
+    meta.textContent = `${N} frames · ${(blob.size / 1024).toFixed(1)} KB · ${Math.round(performance.now() - t0)} ms`;
+  }
+  btn.addEventListener("click", encode);
+  onTheme(() => { draw(lctx, 0, live.width); if (encoded) encode(); });
+  let t = 0;
+  const loop = rafLoop((dt) => { t = (t + dt / 2) % 1; draw(lctx, t, live.width); });
+  draw(lctx, 0, live.width);
+  run(card, {
+    start() { if (!encoded) { encoded = true; encode(); } else if (gifURL) img.src = gifURL; loop.start(); },
+    stop: loop.stop,
+    still() { draw(lctx, 0, live.width); if (!encoded) { encoded = true; encode(); } else if (stillURL) img.src = stillURL; },
+  });
+</script>
+</body>
+</html>

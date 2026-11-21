@@ -1,0 +1,118 @@
+<!doctype html>
+<!--
+  Template: donut-transition — Donut transition
+  Stack: D3 transitions
+  Credit: original for this repo (from the web-animation-skill showcase). MIT.
+  Change: data source, colours, arc radii, duration and easing.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Donut transition</title>
+<script>{ const q = new URLSearchParams(location.search); if (q.has("embed")) document.documentElement.classList.add("embed"); if (q.get("theme") === "light") document.documentElement.classList.add("light"); }</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500&family=Space+Grotesk:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0b0d; --card: #121418; --card-2: #16191e; --line: rgba(255,255,255,.07); --line-2: rgba(255,255,255,.12);
+    --ink: #f2f0ea; --muted: #8b909a; --dim: #4b505a;
+    --lime: #d7ff5a; --violet: #9a8cff; --cyan: #5fd4ff; --coral: #ff7a59;
+    --ease-out: cubic-bezier(0.16, 1, 0.3, 1); --ease-inout: cubic-bezier(0.65, 0, 0.35, 1);
+    --stage: #0d0e12; --tile: #262a33;
+  }
+  /* ?theme=light: warm paper, never pure white; accents one step darker so they keep their contrast */
+  html.light {
+    color-scheme: light;
+    --bg: #f1ede4; --card: #f7f4ed; --card-2: #fbf9f4; --line: rgba(40,32,16,.09); --line-2: rgba(40,32,16,.16);
+    --ink: #1c1b18; --muted: #6d695f; --dim: #a8a295;
+    --lime: #7da600; --violet: #6b58e8; --cyan: #0a92c9; --coral: #e8552f;
+    --stage: #ede8dd; --tile: #ddd6c6;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; overflow-x: clip; }
+  body { min-height: 100vh; display: grid; place-items: center; padding: 32px 16px; background: var(--bg); color: var(--ink);
+         font: 15px/1.45 "Space Grotesk", system-ui, sans-serif; }
+  .mono { font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 11px; letter-spacing: .08em; text-transform: uppercase; }
+  .frame { width: min(var(--w, 720px), calc(100vw - 32px)); }
+  .frame > h1 { margin: 0 0 4px; font: 400 clamp(30px, 4vw, 44px)/1 "Instrument Serif", serif; letter-spacing: -.02em; }
+  .frame > p { margin: 0 0 18px; color: var(--muted); }
+  .stage { position: relative; height: var(--h, 420px); border-radius: 24px; overflow: hidden;
+           background: linear-gradient(180deg, var(--card-2), var(--card)); box-shadow: inset 0 0 0 1px var(--line); }
+  .stage .hint { position: absolute; left: 16px; bottom: 12px; color: var(--dim); font-size: 10px; pointer-events: none; }
+  /* ?embed: just the effect, edge to edge (used by the template pages' preview) */
+  html.embed body { padding: 0; place-items: stretch; }
+  html.embed .frame { width: 100%; }
+  html.embed .frame > h1, html.embed .frame > p { display: none; }
+  html.embed .stage, html.embed .hero { height: 100vh; border-radius: 0; box-shadow: none; }
+  .d3 { position: absolute; inset: 24px; }
+  .d3 svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+  .d3 .ticks { animation: spin-slow 40s linear infinite; transform-origin: 0 0; }
+  .d3 .ticks line { stroke: var(--line-2); }
+  .d3 .big { fill: var(--ink); font: 400 34px "Instrument Serif", serif; text-anchor: middle; dominant-baseline: middle; }
+  .d3 .small { fill: var(--muted); font: 400 7px "JetBrains Mono", monospace; letter-spacing: .1em; text-anchor: middle; text-transform: uppercase; }
+  @keyframes spin-slow { to { transform: rotate(360deg); } }
+  @media (prefers-reduced-motion: reduce) { .d3 .ticks { animation: none; } }
+</style>
+</head>
+<body>
+<main class="frame" style="--w:520px; --h:460px">
+  <h1>Donut transition</h1>
+  <p>attrTween interpolates each arc's angles, so slices sweep instead of morphing straight.</p>
+  <div class="stage"><div class="d3"></div></div>
+</main>
+<script src="https://cdn.jsdelivr.net/npm/d3@7.9.2/dist/d3.min.js"></script>
+<script>
+  const $ = (s, el = document) => el.querySelector(s);
+  const $$ = (s, el = document) => [...el.querySelectorAll(s)];
+  // ?theme=light switches the palette; canvases read these values, CSS reads the variables
+  const LIGHT = document.documentElement.classList.contains("light");
+  const C = LIGHT
+    ? { lime: "#7da600", violet: "#6b58e8", cyan: "#0a92c9", coral: "#e8552f", ink: "#1c1b18", muted: "#6d695f", bg: "#f1ede4", card: "#f7f4ed", card2: "#fbf9f4",
+        stage: "#ede8dd", tile: "#ddd6c6", dim: "#a8a295", line2: "rgba(40,32,16,.16)", blend: "source-over", fade: (a) => `rgba(237,232,221,${a})` }
+    : { lime: "#d7ff5a", violet: "#9a8cff", cyan: "#5fd4ff", coral: "#ff7a59", ink: "#f2f0ea", muted: "#8b909a", bg: "#0a0b0d", card: "#121418", card2: "#16191e",
+        stage: "#0d0e12", tile: "#262a33", dim: "#4b505a", line2: "rgba(255,255,255,.12)", blend: "lighter", fade: (a) => `rgba(13,14,18,${a})` };
+  const PALETTE = [C.lime, C.violet, C.cyan, C.coral], P4 = () => PALETTE;
+  const isLight = () => LIGHT, onTheme = () => {};
+
+  const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const observeSize = (el, fn) => { const ro = new ResizeObserver(() => fn(el.clientWidth, el.clientHeight)); ro.observe(el); fn(el.clientWidth, el.clientHeight); return ro; };
+  const rafLoop = (fn) => { let raf = 0, last = 0; const tick = (now) => { const dt = last ? Math.min(now - last, 50) / 1000 : 1 / 60; last = now; fn(dt, now); raf = requestAnimationFrame(tick); };
+    return { start() { last = 0; cancelAnimationFrame(raf); raf = requestAnimationFrame(tick); }, stop() { cancelAnimationFrame(raf); } }; };
+  function run(el, api) {
+    if (reduce) { api.still?.(); return; }
+    let visible = false, running = false;
+    const sync = () => { const on = visible && !document.hidden; if (on && !running) { running = true; api.start?.(); } else if (!on && running) { running = false; api.stop?.(); } };
+    new IntersectionObserver(([e]) => { visible = e.isIntersecting; sync(); }, { rootMargin: "60px" }).observe(el);
+    document.addEventListener("visibilitychange", sync);
+  }
+
+{
+  const card = $(".stage");
+  const d3 = window.d3; if (!d3) throw new Error("d3 failed to load");
+  const svg = d3.select($(".d3", card)).append("svg").attr("viewBox", "-100 -100 200 200");
+  svg.append("g").attr("class", "ticks").selectAll("line").data(d3.range(72)).join("line")
+    .attr("x1", 0).attr("x2", 0).attr("y1", -96).attr("y2", (i) => (i % 6 ? -93 : -90)).attr("transform", (i) => `rotate(${i * 5})`);
+  const arc = d3.arc().innerRadius(60).outerRadius(84).cornerRadius(5).padAngle(0.035);
+  const pie = d3.pie().sort(null).value((d) => d);
+  const cols = () => [C.lime, C.violet, C.cyan, C.coral, C.tile];
+  let data = [30, 20, 18, 14, 18];
+  const paths = svg.append("g").selectAll("path").data(pie(data)).join("path").attr("fill", (_, i) => cols()[i])
+    .each(function () { this._cur = { startAngle: 0, endAngle: 0, padAngle: 0.035 }; });
+  const big = svg.append("text").attr("class", "big").attr("y", -2).text("0%");
+  svg.append("text").attr("class", "small").attr("y", 22).text("share · lime");
+  onTheme(() => paths.attr("fill", (_, i) => cols()[i]));
+  let timer = 0;
+  function update() {
+    data = data.map(() => 8 + Math.random() * 40);
+    const pct = Math.round((data[0] / d3.sum(data)) * 100);
+    paths.data(pie(data)).transition().duration(1100).ease(d3.easeExpOut)
+      .attrTween("d", function (d) { const i = d3.interpolate(this._cur, d); this._cur = i(1); return (t) => arc(i(t)); });
+    big.transition().duration(1100).ease(d3.easeExpOut).textTween(function () { const i = d3.interpolateRound(parseInt(this.textContent) || 0, pct); return (t) => `${i(t)}%`; });
+  }
+  run(card, { start() { update(); timer = setInterval(update, 2000); }, stop() { clearInterval(timer); }, still() { if (big.text() === "0%") { paths.attr("d", (d) => arc(d)).each(function (d) { this._cur = d; }); big.text(`${Math.round(data[0])}%`); } } });
+}
+</script>
+</body>
+</html>

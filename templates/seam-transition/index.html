@@ -1,0 +1,193 @@
+<!doctype html>
+<!--
+  Template: seam-transition — the edge between two sections bleeds like ink into wet paper as you scroll
+  Stack: WebGL 2 fragment shader on a strip over the section edge + native scroll (no library)
+  Adapted from "Seam Transitions" (01 Ink Bleed) by Codrops — https://github.com/codrops/SeamTransitions
+  Copyright (c) 2009 - 2026 Codrops — MIT License. Reduced to one file: no GSAP/ScrollSmoother,
+  no photograph texture (the hero is a CSS colour the shader matches).
+  Change: --hero-top / --hero-bottom / --paper colours, ROOM, the noise scales in the shader.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Seam transition</title>
+<script>if (new URLSearchParams(location.search).get("theme") === "light") document.documentElement.classList.add("light");</script>
+<style>
+  :root {
+    --hero-top: #0f2a22; --hero-bottom: #123f2f;   /* the shader reads these two */
+    --paper: #f2efe6; --ink: #121513; --muted: #5d625d; --accent: #d7ff5a;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; overflow-x: clip; }
+  body { background: var(--paper); color: var(--ink); font: 17px/1.6 ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif; }
+
+  .hero {
+    position: relative; height: 100svh; display: grid; align-content: center; padding: 0 6vw;
+    /* Solid for its last 45%, so the colour at the edge is exactly --hero-bottom */
+    background: linear-gradient(var(--hero-top), var(--hero-bottom) 55%, var(--hero-bottom));
+    color: #eef3e8;
+  }
+  .hero h1 { margin: 0; max-width: 12ch; font-size: clamp(40px, 8vw, 104px); line-height: 0.95; letter-spacing: -0.035em; }
+  .hero p { margin: 18px 0 0; max-width: 34ch; color: rgb(238 243 232 / 0.7); }
+  .cue { position: absolute; left: 6vw; bottom: 6svh; font-size: 13px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent); }
+
+  /* The seam strip straddles the hero's bottom edge. It is empty and click-through. */
+  .seam { position: absolute; left: 0; right: 0; top: calc(100svh - var(--above, 0px)); height: calc(var(--above, 0px) + var(--below, 0px));
+          pointer-events: none; z-index: 2; }
+  .seam canvas { width: 100%; height: 100%; display: block; }
+
+  .next { position: relative; padding: 34svh 6vw 20svh; }
+  .next .label { font-size: 13px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); margin: 0 0 14px; }
+  .next h2 { margin: 0; max-width: 20ch; font-size: clamp(28px, 4.4vw, 56px); line-height: 1.05; letter-spacing: -0.025em; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(260px, 100%), 1fr)); gap: 16px; margin-top: 12svh; }
+  .grid article { aspect-ratio: 4 / 5; border-radius: 6px; padding: 18px; display: flex; align-items: flex-end; color: #eef3e8;
+                  background: linear-gradient(170deg, hsl(var(--h) 35% 38%), hsl(var(--h) 40% 16%)); }
+  /* ?theme=light: warm paper, never pure white; accents one step darker so they keep their contrast */
+  html.light { color-scheme: light; --bg: #f1ede4; --fg: #1c1b18; --muted: #6d695f; --accent: #7da600; --line: #d9d2c3;
+               --card: #f7f4ed; --panel: #e9e3d6; --edge: rgb(40 32 16 / 0.1); --glow: 125 166 0; }
+</style>
+</head>
+<body>
+  <header class="hero">
+    <h1>Bring the forest back</h1>
+    <p>We replant cleared hills, one valley at a time.</p>
+    <span class="cue">Scroll</span>
+  </header>
+  <div class="seam" aria-hidden="true"></div>
+  <main class="next">
+    <p class="label">Canopy studio</p>
+    <h2>Every project starts where the trees stopped.</h2>
+    <section class="grid">
+      <article style="--h:150">Serra da Estrela</article>
+      <article style="--h:110">Monchique</article>
+      <article style="--h:80">Gerês</article>
+    </section>
+  </main>
+<script>
+(() => {
+  const hero = document.querySelector(".hero");
+  const seamEl = document.querySelector(".seam");
+  if (matchMedia("(prefers-reduced-motion: reduce)").matches) return;   // plain edge
+
+  const canvas = document.createElement("canvas");
+  const gl = canvas.getContext("webgl2", { premultipliedAlpha: true, antialias: false });
+  if (!gl) return;                                                        // plain edge
+  seamEl.append(canvas);
+
+  // How far the ink may reach either side of the edge (stay clear of the text)
+  const ROOM = { up: () => innerHeight * 0.28, down: () => innerHeight * 0.3 };
+
+  const vertex = `#version 300 es
+  uniform vec2 uSize; out vec2 vPx;
+  void main() {
+    vec2 p = vec2(float((gl_VertexID << 1) & 2), float(gl_VertexID & 2));   // one big triangle
+    vPx = vec2(p.x, 1.0 - p.y) * uSize;
+    gl_Position = vec4(p * 2.0 - 1.0, 0.0, 1.0);
+  }`;
+
+  // Noise + paint() from Codrops' glsl.js; the ink field from seams/ink.js (MIT)
+  const fragment = `#version 300 es
+  precision highp float;
+  uniform vec2 uSize; uniform float uEdge, uTravel, uProgress, uVelocity;
+  uniform vec3 uPaper, uHero;
+  in vec2 vPx; out vec4 outColor;
+
+  float hash(vec2 p) { p = fract(p * vec2(123.34, 456.21)); p += dot(p, p + 45.32); return fract(p.x * p.y); }
+  float noise(vec2 p) {
+    vec2 i = floor(p), f = fract(p), u = f * f * (3.0 - 2.0 * f);
+    return mix(mix(hash(i), hash(i + vec2(1, 0)), u.x), mix(hash(i + vec2(0, 1)), hash(i + vec2(1, 1)), u.x), u.y);
+  }
+  float fbm(vec2 p) { float v = 0.0, a = 0.5; for (int i = 0; i < 5; i++) { v += a * noise(p); p = p * 2.03 + 17.1; a *= 0.5; } return v / 0.97; }
+
+  // Above uEdge the page under the canvas is the hero, below it is paper. Paint only the difference:
+  // paper where the seam cuts up into the hero, hero colour where the ink runs down into the paper.
+  vec4 paint(vec2 px, float h, vec3 dark) {
+    float page = step(px.y, uEdge);
+    float a = abs(h - page);
+    float near = 1.0 - step(1.0, abs(px.y - uEdge));
+    return mix(vec4(mix(dark, uPaper, page) * a, a), vec4(mix(uPaper, dark, h), 1.0), near);
+  }
+
+  void main() {
+    if (uProgress <= 0.0) { outColor = vec4(0.0); return; }
+    vec2 px = vPx;
+    float d = px.y - uEdge, down = uSize.y - uEdge, up = uEdge;
+
+    // Warped lobes + fine fray + thin runs along the paper's fibres; drifts as the page travels
+    vec2 q = (px + uTravel * vec2(0.08, 0.47)) / 300.0;
+    vec2 w = vec2(fbm(q), fbm(q + vec2(5.2, 1.3)));
+    float lobes = fbm(q * 1.2 + 2.2 * w);
+    float fray = fbm(px / 24.0 + 3.0 * w);
+    float runs = pow(fbm(vec2(px.x / 26.0, (px.y - uTravel * 0.16) / 140.0)), 3.0);
+    float g = (lobes - 0.42) * 2.8 + (fray - 0.5) * 0.35 + runs * 0.9;
+
+    // Spreads most of the way in the first third of the scroll, wider while scrolling fast
+    float spread = smoothstep(0.0, 0.35, uProgress) + min(abs(uVelocity) / 3000.0, 0.35);
+    float reach = g > 0.0 ? down * tanh(g * spread * 0.9) : -up * tanh(-g * spread * 0.5);
+
+    float s = d - reach;
+    float soft = max((0.8 + min(abs(uVelocity) * 0.004, 8.0)) * smoothstep(0.0, 0.03, uProgress), 0.001);
+    float h = 1.0 - smoothstep(-soft, soft, s);
+    float rim = 1.0 - smoothstep(0.0, 14.0, -s);              // ink pools darker at its edge
+    vec3 dark = uHero * (1.0 - 0.45 * rim * step(0.0, d));
+    outColor = paint(px, h, dark);
+  }`;
+
+  const compile = (type, src) => {
+    const s = gl.createShader(type); gl.shaderSource(s, src); gl.compileShader(s);
+    if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(s));
+    return s;
+  };
+  const prog = gl.createProgram();
+  gl.attachShader(prog, compile(gl.VERTEX_SHADER, vertex));
+  gl.attachShader(prog, compile(gl.FRAGMENT_SHADER, fragment));
+  gl.linkProgram(prog); gl.useProgram(prog);
+  const U = (n) => gl.getUniformLocation(prog, n);
+
+  const rgb = (v) => { const c = document.createElement("canvas").getContext("2d"); c.fillStyle = v; const h = c.fillStyle.slice(1);
+                       return [0, 2, 4].map((i) => parseInt(h.slice(i, i + 2), 16) / 255); };
+  const css = getComputedStyle(document.documentElement);
+  gl.uniform3fv(U("uPaper"), rgb(css.getPropertyValue("--paper").trim()));
+  gl.uniform3fv(U("uHero"), rgb(css.getPropertyValue("--hero-bottom").trim()));
+
+  let size = [0, 0], above = 0;
+  function resize() {
+    above = Math.round(ROOM.up());
+    const below = Math.round(ROOM.down());
+    seamEl.style.setProperty("--above", `${above}px`);
+    seamEl.style.setProperty("--below", `${below}px`);
+    const dpr = Math.min(1.5, devicePixelRatio || 1);
+    size = [seamEl.clientWidth, above + below];
+    canvas.width = Math.round(size[0] * dpr); canvas.height = Math.round(size[1] * dpr);
+    gl.viewport(0, 0, canvas.width, canvas.height);
+    gl.uniform2fv(U("uSize"), size); gl.uniform1f(U("uEdge"), above);
+  }
+
+  // travel: how far the hero's bottom edge has risen from the bottom of the screen
+  let travel = 0, progress = 0, velocity = 0, lastY = scrollY, lastT = performance.now(), drawn = "";
+  function frame(now) {
+    const y = scrollY;
+    const speed = (y - lastY) / Math.max((now - lastT) / 1000, 1 / 120);
+    lastY = y; lastT = now;
+    velocity += (speed - velocity) * 0.3;
+    if (Math.abs(velocity) < 2) velocity = 0;
+    travel = innerHeight - hero.getBoundingClientRect().bottom;
+    progress = Math.min(1, Math.max(0, travel / innerHeight));
+    const r = seamEl.getBoundingClientRect();
+    const key = `${travel}|${velocity.toFixed(1)}`;
+    if (r.top < innerHeight && r.bottom > 0 && key !== drawn) {      // draw only when visible and changed
+      drawn = key;
+      gl.uniform1f(U("uTravel"), travel); gl.uniform1f(U("uProgress"), progress); gl.uniform1f(U("uVelocity"), velocity);
+      gl.clearColor(0, 0, 0, 0); gl.clear(gl.COLOR_BUFFER_BIT);
+      gl.drawArrays(gl.TRIANGLES, 0, 3);
+    }
+    requestAnimationFrame(frame);
+  }
+  resize();
+  addEventListener("resize", () => { resize(); drawn = ""; });
+  requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>

@@ -37,13 +37,31 @@ Works with Claude Code, Codex, Cursor, GitHub Copilot and any agent that reads `
 npx skills add yuzhang-ai/web-animation-skill
 ```
 
-Or copy `SKILL.md` and `rules/` into your agent's skills folder (for example `.claude/skills/web-animation/`).
+Or copy `SKILL.md`, `rules/`, `templates/` and `spec/` into your agent's skills folder (for example `.claude/skills/web-animation/`).
 
 **Pairs well with** GreenSock's official [gsap-skills](https://github.com/greensock/gsap-skills): they go deep on GSAP itself, this skill decides when you need GSAP at all and how to verify the result.
 
 ## How it works
 
-`SKILL.md` is the entry point. It gives the agent the workflow, a quick picker, the non-negotiables, and motion tokens. The agent then loads only the rule file it needs.
+`SKILL.md` is the entry point. The agent first looks for a close **template** in [templates/CATALOG.md](templates/CATALOG.md): a self-contained page with a prompt, knobs and pitfalls, already checked in a real browser. It adapts that instead of inventing an effect from nothing, and follows the [motion spec](spec/motion.md) for easing, durations, springs and control states. When no template fits, it uses the workflow, quick picker and the one rule file it needs.
+
+| Stack | Templates |
+|---|---|
+| CSS & native APIs (11) | [View transition grid](templates/view-transition-grid/) · [Conic ring](templates/conic-ring/) · [Drag parallax track](templates/drag-parallax-track/) · [Glow cards](templates/glow-cards/) · [Infinite marquee](templates/infinite-marquee/) · [Jelly button](templates/jelly-button/) · [Motion curves](templates/motion-curves/) · [Scroll drum picker](templates/scroll-drum-picker/) · [Shape morph UI](templates/shape-morph-ui/) · [SVG spinners](templates/svg-spinners/) · [Text scramble](templates/text-scramble/) |
+| GSAP (4) | [Motion path timeline](templates/motion-path-timeline/) · [Split-flap words](templates/split-flap-words/) · [Scroll layout flip](templates/scroll-layout-flip/) · [Split text reveal](templates/split-text-reveal/) |
+| Motion (1) | [Spring goo trail](templates/spring-goo-trail/) |
+| Anime.js v4 (1) | [Stagger ripple grid](templates/stagger-ripple-grid/) |
+| Three.js & WebGL (4) | [Iridescent blob](templates/iridescent-blob/) · [Dot globe](templates/dot-globe/) · [Fluid cursor](templates/fluid-cursor/) · [Ink seam transition](templates/seam-transition/) |
+| Canvas 2D (1) | [Flow field hero](templates/flow-field-hero/) |
+| D3 (1) | [Donut transition](templates/donut-transition/) |
+| Lottie (1) | [Lottie like button](templates/lottie-like-button/) |
+| Flubber (1) | [Flubber morph](templates/flubber-morph/) |
+| Two.js (1) | [Vertex blobs](templates/vertex-blobs/) |
+| Konva (1) | [Canvas editor](templates/canvas-editor/) |
+| Proton (1) | [Particle fireworks](templates/particle-fireworks/) |
+| Export (1) | [GIF export](templates/gif-export/) |
+
+Browse them live on the [templates page](https://yuzhang-ai.github.io/web-animation-skill/templates.html). Adapted and inspired sources are credited in [THIRD_PARTY.md](THIRD_PARTY.md).
 
 ```
 Brief    → one-line motion spec per element (+ its reduced-motion version)

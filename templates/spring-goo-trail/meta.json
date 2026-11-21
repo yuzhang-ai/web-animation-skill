@@ -1,0 +1,35 @@
+{
+  "id": "spring-goo-trail",
+  "title": "Spring goo trail",
+  "summary": "Seven blobs chase the pointer on springs, each following where the head was a moment ago; an SVG goo filter melts them into one stretchy creature.",
+  "category": "hover",
+  "group": "motion",
+  "featured": true,
+  "stack": "Motion springs + SVG goo filter",
+  "libs": [
+    {
+      "name": "motion",
+      "version": "14.9.0",
+      "url": "https://cdn.jsdelivr.net/npm/motion@14.9.0/+esm",
+      "license": "MIT"
+    }
+  ],
+  "useFor": [
+    "playful cursors",
+    "hero mascots",
+    "interactive empty states"
+  ],
+  "tags": [
+    "spring",
+    "velocity",
+    "goo",
+    "svg-filter",
+    "cursor"
+  ],
+  "source": {
+    "mode": "original",
+    "author": "web-animation-skill",
+    "url": "https://github.com/yuzhang-ai/web-animation-skill",
+    "license": "MIT"
+  }
+}
