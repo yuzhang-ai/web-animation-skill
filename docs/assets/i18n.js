@@ -33,12 +33,18 @@
   const store = { get() { try { return localStorage.getItem("lang"); } catch { return null; } }, set(v) { try { localStorage.setItem("lang", v); } catch {} } };
   window.LANG = () => (root.lang === "zh-CN" ? "zh" : "en");
 
+  // Keep the original English before anything else touches the markup (e.g. SplitText wrapping a headline
+  // in animated line elements). This script loads at the end of <body>, so every [data-i18n] already exists.
+  const remember = () => document.querySelectorAll("[data-i18n]").forEach((el) => { if (el.dataset.en === undefined) el.dataset.en = el.innerHTML; });
+  remember();
   function apply() {
+    remember();
     const zh = LANG() === "zh";
     document.querySelectorAll("[data-i18n]").forEach((el) => {
-      if (el.dataset.en === undefined) el.dataset.en = el.innerHTML;
       const v = ZH[el.dataset.i18n];
-      el.innerHTML = zh && v ? v : el.dataset.en;
+      const html = zh && v ? v : el.dataset.en;
+      // Only rewrite when the text really changes, so a running animation on that element is left alone
+      if (el.dataset.shown !== (zh && v ? "zh" : "en")) { if (el.innerHTML !== html) el.innerHTML = html; el.dataset.shown = zh && v ? "zh" : "en"; }
     });
     document.querySelectorAll(".lang-toggle .label").forEach((l) => (l.textContent = zh ? "EN" : "中"));
     document.querySelectorAll(".lang-toggle").forEach((b) => b.setAttribute("aria-label", zh ? "Switch to English" : "切换到简体中文"));
@@ -53,5 +59,5 @@
     dispatchEvent(new CustomEvent("langchange", { detail: l }));
   };
   document.addEventListener("click", (e) => { if (e.target.closest(".lang-toggle")) setLang(LANG() === "zh" ? "en" : "zh"); });
-  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", apply); else apply();
+  apply();   // now, before deferred/module scripts run, not on DOMContentLoaded
 })();
