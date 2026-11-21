@@ -1,0 +1,38 @@
+{
+  "id": "lottie-like-button",
+  "title": "Lottie like button",
+  "summary": "A multi-layer After-Effects-style like animation (heart press, fill pop, trim-path rays, flying dots), with frame-exact scrubbing and like / unlike segments from one file.",
+  "category": "button",
+  "group": "lottie",
+  "featured": true,
+  "stack": "lottie-web (SVG)",
+  "libs": [
+    {
+      "name": "lottie-web",
+      "version": "5.13.0",
+      "url": "https://cdn.jsdelivr.net/npm/lottie-web@5.13.0/build/player/lottie_light.min.js",
+      "license": "MIT"
+    }
+  ],
+  "useFor": [
+    "like / favourite / bookmark buttons",
+    "success states",
+    "any designer-made icon animation"
+  ],
+  "tags": [
+    "lottie",
+    "after-effects",
+    "segments",
+    "scrub",
+    "trim-paths"
+  ],
+  "source": {
+    "mode": "original",
+    "author": "web-animation-skill",
+    "url": "https://github.com/yuzhang-ai/web-animation-skill",
+    "license": "MIT"
+  },
+  "check": {
+    "settle": 1400
+  }
+}

@@ -1,0 +1,32 @@
+{
+  "id": "fluid-cursor",
+  "title": "Fluid cursor",
+  "summary": "The pointer stirs glowing ink through a real-time fluid simulation that swirls, curls and fades over the page. Click for a burst.",
+  "category": "background",
+  "group": "webgl",
+  "stack": "WebGL 2 fluid solver",
+  "libs": [],
+  "useFor": [
+    "hero backgrounds",
+    "creative / agency sites",
+    "404 pages",
+    "interactive splash screens"
+  ],
+  "tags": [
+    "fluid",
+    "navier-stokes",
+    "cursor",
+    "webgl2",
+    "shader"
+  ],
+  "source": {
+    "mode": "adapted",
+    "author": "Pavel Dobryakov",
+    "url": "https://github.com/PavelDoGreat/WebGL-Fluid-Simulation",
+    "license": "MIT"
+  },
+  "check": {
+    "settle": 800,
+    "shot": "viewport"
+  }
+}

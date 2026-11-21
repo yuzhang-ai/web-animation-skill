@@ -1,0 +1,27 @@
+{
+  "id": "scroll-drum-picker",
+  "title": "Scroll drum picker",
+  "summary": "A plain scrolling list becomes a 3D drum: each item tilts away, shrinks and dims as it leaves the centre band, driven by CSS view() timelines with no scroll listeners.",
+  "category": "scroll",
+  "group": "native",
+  "stack": "CSS scroll-driven animations",
+  "libs": [],
+  "useFor": [
+    "pickers (date, time, options)",
+    "feature lists",
+    "scroll-linked menus"
+  ],
+  "tags": [
+    "animation-timeline",
+    "view()",
+    "scroll-timeline",
+    "3d",
+    "progressive-enhancement"
+  ],
+  "source": {
+    "mode": "original",
+    "author": "web-animation-skill",
+    "url": "https://github.com/yuzhang-ai/web-animation-skill",
+    "license": "MIT"
+  }
+}

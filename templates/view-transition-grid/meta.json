@@ -1,0 +1,27 @@
+{
+  "id": "view-transition-grid",
+  "title": "View transition grid",
+  "summary": "Coloured tiles shuffle and one expands to fill the panel, and every tile glides to its new slot. The browser does the tweening (View Transitions API, 0 KB).",
+  "category": "transition",
+  "group": "native",
+  "featured": true,
+  "stack": "View Transitions API",
+  "libs": [],
+  "useFor": [
+    "filter / sort results",
+    "card → detail expansion",
+    "dashboard rearrangement"
+  ],
+  "tags": [
+    "view-transitions",
+    "shared-element",
+    "reorder",
+    "0kb"
+  ],
+  "source": {
+    "mode": "original",
+    "author": "web-animation-skill",
+    "url": "https://github.com/yuzhang-ai/web-animation-skill",
+    "license": "MIT"
+  }
+}

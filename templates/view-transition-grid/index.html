@@ -1,0 +1,125 @@
+<!doctype html>
+<!--
+  Template: view-transition-grid — View transition grid
+  Stack: View Transitions API
+  Credit: original for this repo (from the web-animation-skill showcase). MIT.
+  Change: tile content, steps, the ::view-transition-group timing.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>View transition grid</title>
+<script>{ const q = new URLSearchParams(location.search); if (q.has("embed")) document.documentElement.classList.add("embed"); if (q.get("theme") === "light") document.documentElement.classList.add("light"); }</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500&family=Space+Grotesk:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0b0d; --card: #121418; --card-2: #16191e; --line: rgba(255,255,255,.07); --line-2: rgba(255,255,255,.12);
+    --ink: #f2f0ea; --muted: #8b909a; --dim: #4b505a;
+    --lime: #d7ff5a; --violet: #9a8cff; --cyan: #5fd4ff; --coral: #ff7a59;
+    --ease-out: cubic-bezier(0.16, 1, 0.3, 1); --ease-inout: cubic-bezier(0.65, 0, 0.35, 1);
+    --stage: #0d0e12; --tile: #262a33;
+  }
+  /* ?theme=light: warm paper, never pure white; accents one step darker so they keep their contrast */
+  html.light {
+    color-scheme: light;
+    --bg: #f1ede4; --card: #f7f4ed; --card-2: #fbf9f4; --line: rgba(40,32,16,.09); --line-2: rgba(40,32,16,.16);
+    --ink: #1c1b18; --muted: #6d695f; --dim: #a8a295;
+    --lime: #7da600; --violet: #6b58e8; --cyan: #0a92c9; --coral: #e8552f;
+    --stage: #ede8dd; --tile: #ddd6c6;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; overflow-x: clip; }
+  body { min-height: 100vh; display: grid; place-items: center; padding: 32px 16px; background: var(--bg); color: var(--ink);
+         font: 15px/1.45 "Space Grotesk", system-ui, sans-serif; }
+  .mono { font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 11px; letter-spacing: .08em; text-transform: uppercase; }
+  .frame { width: min(var(--w, 720px), calc(100vw - 32px)); }
+  .frame > h1 { margin: 0 0 4px; font: 400 clamp(30px, 4vw, 44px)/1 "Instrument Serif", serif; letter-spacing: -.02em; }
+  .frame > p { margin: 0 0 18px; color: var(--muted); }
+  .stage { position: relative; height: var(--h, 420px); border-radius: 24px; overflow: hidden;
+           background: linear-gradient(180deg, var(--card-2), var(--card)); box-shadow: inset 0 0 0 1px var(--line); }
+  .stage .hint { position: absolute; left: 16px; bottom: 12px; color: var(--dim); font-size: 10px; pointer-events: none; }
+  /* ?embed: just the effect, edge to edge (used by the template pages' preview) */
+  html.embed body { padding: 0; place-items: stretch; }
+  html.embed .frame { width: 100%; }
+  html.embed .frame > h1, html.embed .frame > p { display: none; }
+  html.embed .stage, html.embed .hero { height: 100vh; border-radius: 0; box-shadow: none; }
+  .vt-grid { position: absolute; inset: 14px; display: grid; grid-template-columns: repeat(2, 1fr); grid-template-rows: repeat(3, 1fr); gap: 8px; }
+  .vt-grid .tile { border-radius: 16px; padding: 12px 14px; display: flex; flex-direction: column; justify-content: space-between; color: var(--bg); font: 500 12px "JetBrains Mono", monospace; overflow: hidden; min-height: 0; }
+  .vt-grid .tile.big { grid-column: span 2; }
+  .vt-grid .tile .more { display: none; font: 400 14px/1.4 "Space Grotesk", sans-serif; max-width: 28ch; }
+  .vt-grid .tile .ttl { font: italic 400 34px/1 "Instrument Serif", serif; display: none; }
+  .vt-grid.has-expanded .tile:not(.expanded) { display: none; }
+  .vt-grid .tile.expanded { grid-column: 1 / -1; grid-row: 1 / -1; padding: 18px; }
+  .vt-grid .tile.expanded .more, .vt-grid .tile.expanded .ttl { display: block; }
+  ::view-transition { pointer-events: none; }
+  ::view-transition-old(root), ::view-transition-new(root) { animation: none; }
+  ::view-transition-group(*) { animation-duration: .7s; animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1); }
+  ::view-transition-old(*), ::view-transition-new(*) { height: 100%; }
+</style>
+</head>
+<body>
+<main class="frame" style="--w:520px; --h:480px">
+  <h1>View transition grid</h1>
+  <p>Change the DOM inside startViewTransition() and every named tile morphs to its new place.</p>
+  <div class="stage"><div class="vt-grid">
+    <div class="tile big" style="background:var(--lime)"><span class="ttl">Shared element</span><span>hero</span><span class="more">One element, two layouts. The browser snapshots both and morphs between them.</span></div>
+    <div class="tile" style="background:var(--violet)"><span class="ttl">Crossfade</span><span>02</span><span class="more">Siblings that leave get their old snapshot faded out.</span></div>
+    <div class="tile" style="background:var(--cyan)"><span class="ttl">Reorder</span><span>03</span><span class="more">Shuffle the DOM; every named tile flies to its new slot.</span></div>
+    <div class="tile" style="background:var(--coral)"><span class="ttl">Resize</span><span>04</span><span class="more">Size and position animate together, no FLIP math.</span></div>
+    <div class="tile" style="background:var(--ink)"><span class="ttl">0 KB</span><span>05</span><span class="more">document.startViewTransition(update)</span></div>
+  </div></div>
+</main>
+
+<script>
+  const $ = (s, el = document) => el.querySelector(s);
+  const $$ = (s, el = document) => [...el.querySelectorAll(s)];
+  // ?theme=light switches the palette; canvases read these values, CSS reads the variables
+  const LIGHT = document.documentElement.classList.contains("light");
+  const C = LIGHT
+    ? { lime: "#7da600", violet: "#6b58e8", cyan: "#0a92c9", coral: "#e8552f", ink: "#1c1b18", muted: "#6d695f", bg: "#f1ede4", card: "#f7f4ed", card2: "#fbf9f4",
+        stage: "#ede8dd", tile: "#ddd6c6", dim: "#a8a295", line2: "rgba(40,32,16,.16)", blend: "source-over", fade: (a) => `rgba(237,232,221,${a})` }
+    : { lime: "#d7ff5a", violet: "#9a8cff", cyan: "#5fd4ff", coral: "#ff7a59", ink: "#f2f0ea", muted: "#8b909a", bg: "#0a0b0d", card: "#121418", card2: "#16191e",
+        stage: "#0d0e12", tile: "#262a33", dim: "#4b505a", line2: "rgba(255,255,255,.12)", blend: "lighter", fade: (a) => `rgba(13,14,18,${a})` };
+  const PALETTE = [C.lime, C.violet, C.cyan, C.coral], P4 = () => PALETTE;
+  const isLight = () => LIGHT, onTheme = () => {};
+
+  const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const observeSize = (el, fn) => { const ro = new ResizeObserver(() => fn(el.clientWidth, el.clientHeight)); ro.observe(el); fn(el.clientWidth, el.clientHeight); return ro; };
+  const rafLoop = (fn) => { let raf = 0, last = 0; const tick = (now) => { const dt = last ? Math.min(now - last, 50) / 1000 : 1 / 60; last = now; fn(dt, now); raf = requestAnimationFrame(tick); };
+    return { start() { last = 0; cancelAnimationFrame(raf); raf = requestAnimationFrame(tick); }, stop() { cancelAnimationFrame(raf); } }; };
+  function run(el, api) {
+    if (reduce) { api.still?.(); return; }
+    let visible = false, running = false;
+    const sync = () => { const on = visible && !document.hidden; if (on && !running) { running = true; api.start?.(); } else if (!on && running) { running = false; api.stop?.(); } };
+    new IntersectionObserver(([e]) => { visible = e.isIntersecting; sync(); }, { rootMargin: "60px" }).observe(el);
+    document.addEventListener("visibilitychange", sync);
+  }
+
+{
+
+  const card = $(".stage"), grid = $(".vt-grid"), tiles = $$(".tile", grid);
+  tiles.forEach((t, i) => (t.style.viewTransitionName = `vt-tile-${i}`));   // unique name per tile
+  const steps = ["shuffle", "shuffle", "expand", "collapse"];
+  let s = 0, timer = 0, lastScroll = 0;
+  addEventListener("scroll", () => (lastScroll = performance.now()), { passive: true });
+  const transition = (fn) => {
+    // Snapshots are taken in viewport space: if the page scrolls mid-transition they drift. Skip while scrolling.
+    if (performance.now() - lastScroll < 700) return;
+    if (!document.startViewTransition) return fn();
+    const vt = document.startViewTransition(fn);
+    vt.ready.catch(() => {}); vt.finished.catch(() => {});      // skipped transitions reject; don't log them
+  };
+  function next() {
+    const kind = steps[s++ % steps.length];
+    if (kind === "shuffle") transition(() => { const kids = [...grid.children]; let o; do { o = [...kids].sort(() => Math.random() - 0.5); } while (o[0] === kids[0]); o.forEach((k) => grid.appendChild(k)); });
+    if (kind === "expand") transition(() => { tiles[Math.floor(Math.random() * tiles.length)].classList.add("expanded"); grid.classList.add("has-expanded"); });
+    if (kind === "collapse") transition(() => { tiles.forEach((t) => t.classList.remove("expanded")); grid.classList.remove("has-expanded"); });
+  }
+  run(card, { start() { timer = setInterval(next, 1800); }, stop() { clearInterval(timer); } });
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,124 @@
+<!doctype html>
+<!--
+  Template: dot-globe — a rotating dotted globe with markers, arcs and CSS-anchored labels
+  Stack: COBE 2.0.1 (~5KB WebGL, MIT) + CSS anchor positioning
+  Credit: COBE by Shu Ding, https://github.com/shuding/cobe (MIT). Page code original. MIT.
+  Change: MARKERS / ARCS, colors (0–1 RGB), speed. Drag to spin.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dot globe</title>
+<script>if (new URLSearchParams(location.search).get("theme") === "light") document.documentElement.classList.add("light");</script>
+<style>
+  :root { --bg: #0b0c0f; --fg: #ecebe6; --muted: #8b8b86; --accent: #d7ff5a; }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; min-height: 100vh; display: grid; place-items: center; align-content: center; gap: 8px;
+    padding: 32px 16px; overflow-x: clip;
+    background: var(--bg); color: var(--fg); text-align: center;
+    font: 16px/1.5 ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  }
+  h1 { margin: 0; font-size: clamp(26px, 4vw, 42px); letter-spacing: -0.02em; }
+  p { margin: 0; color: var(--muted); }
+  .wrap { position: relative; width: min(560px, 92vw); aspect-ratio: 1; }
+  canvas {
+    width: 100%; height: 100%; cursor: grab; touch-action: pan-y;
+    opacity: 0; transition: opacity 1s ease;            /* fade in once the first frame is drawn */
+  }
+  canvas.ready { opacity: 1; }
+  canvas:active { cursor: grabbing; }
+
+  /* COBE exposes --cobe-{id} anchors and --cobe-visible-{id} (0 behind the globe, 1 in front) */
+  .tag {
+    position: absolute; bottom: anchor(top); left: anchor(center); translate: -50% -6px;
+    padding: 3px 8px; border-radius: 999px; font-size: 12px; white-space: nowrap; pointer-events: none;
+    background: rgb(11 12 15 / 0.8); border: 1px solid rgb(215 255 90 / 0.4); color: var(--accent);
+    transition: opacity 0.3s, filter 0.3s;
+  }
+  .tag.sf  { position-anchor: --cobe-sf;  opacity: var(--cobe-visible-sf, 0);  filter: blur(calc((1 - var(--cobe-visible-sf, 0)) * 6px)); }
+  .tag.lon { position-anchor: --cobe-lon; opacity: var(--cobe-visible-lon, 0); filter: blur(calc((1 - var(--cobe-visible-lon, 0)) * 6px)); }
+  .tag.tyo { position-anchor: --cobe-tyo; opacity: var(--cobe-visible-tyo, 0); filter: blur(calc((1 - var(--cobe-visible-tyo, 0)) * 6px)); }
+  .tag.syd { position-anchor: --cobe-syd; opacity: var(--cobe-visible-syd, 0); filter: blur(calc((1 - var(--cobe-visible-syd, 0)) * 6px)); }
+  @supports not (position-anchor: --x) { .tag { display: none; } }
+  /* ?theme=light: warm paper, never pure white; accents one step darker so they keep their contrast */
+  html.light { color-scheme: light; --bg: #f1ede4; --fg: #1c1b18; --muted: #6d695f; --accent: #7da600; --line: #d9d2c3;
+               --card: #f7f4ed; --panel: #e9e3d6; --edge: rgb(40 32 16 / 0.1); --glow: 125 166 0; }
+  html.light .tag { background: rgb(247 244 237 / 0.85); border-color: rgb(125 166 0 / 0.5); color: #4f6c00; }
+</style>
+</head>
+<body>
+  <h1>Edge in every region</h1>
+  <p>Drag to spin.</p>
+  <div class="wrap">
+    <canvas id="globe"></canvas>
+    <span class="tag sf">San Francisco</span>
+    <span class="tag lon">London</span>
+    <span class="tag tyo">Tokyo</span>
+    <span class="tag syd">Sydney</span>
+  </div>
+<script type="module">
+  import createGlobe from "https://cdn.jsdelivr.net/npm/cobe@2.0.1/+esm";
+
+  const MARKERS = [
+    { id: "sf",  location: [37.77, -122.42], size: 0.06 },
+    { id: "lon", location: [51.51, -0.13],   size: 0.06 },
+    { id: "tyo", location: [35.68, 139.69],  size: 0.06 },
+    { id: "syd", location: [-33.87, 151.21], size: 0.05 },
+    { location: [1.35, 103.82], size: 0.04 }, { location: [-23.55, -46.63], size: 0.04 },
+    { location: [19.08, 72.88], size: 0.04 }, { location: [52.52, 13.4], size: 0.04 },
+  ];
+  const ARCS = [
+    { from: [37.77, -122.42], to: [51.51, -0.13] },
+    { from: [51.51, -0.13],   to: [35.68, 139.69] },
+    { from: [35.68, 139.69],  to: [-33.87, 151.21] },
+  ];
+
+  const canvas = document.getElementById("globe");
+  const reduce = matchMedia("(prefers-reduced-motion: reduce)");
+  const dpr = Math.min(devicePixelRatio, 2);
+  let size = canvas.offsetWidth;
+  let phi = 0.6, velocity = 0, dragX = null, raf = 0;
+
+  const globe = createGlobe(canvas, {
+    devicePixelRatio: dpr, width: size * dpr, height: size * dpr,
+    phi, theta: 0.28, diffuse: 1.2, mapSamples: 16000, mapBaseBrightness: 0.02,
+    // light theme: a paper globe with olive markers; dark theme: a night globe with lime markers
+    ...(document.documentElement.classList.contains("light")
+      ? { dark: 0, mapBrightness: 2.2, baseColor: [0.93, 0.9, 0.84], markerColor: [0.49, 0.65, 0], glowColor: [0.95, 0.93, 0.88], arcColor: [0.49, 0.65, 0] }
+      : { dark: 1, mapBrightness: 5, baseColor: [0.25, 0.26, 0.3], markerColor: [0.84, 1, 0.35], glowColor: [0.16, 0.18, 0.2], arcColor: [0.84, 1, 0.35] }),
+    arcWidth: 0.6, arcHeight: 0.28, markerElevation: 0.02,
+    markers: MARKERS, arcs: ARCS,
+  });
+
+  // COBE 2 has no onRender callback (the README still shows one): run your own loop
+  function frame() {
+    if (dragX === null) {
+      velocity *= 0.95;                                 // inertia after a fling
+      phi += (reduce.matches ? 0 : 0.0035) + velocity;
+    }
+    globe.update({ phi, width: size * dpr, height: size * dpr });
+    raf = requestAnimationFrame(frame);
+  }
+  const start = () => { cancelAnimationFrame(raf); raf = requestAnimationFrame(frame); };
+  start();
+  requestAnimationFrame(() => canvas.classList.add("ready"));
+
+  canvas.addEventListener("pointerdown", (e) => { dragX = e.clientX; canvas.setPointerCapture(e.pointerId); });
+  canvas.addEventListener("pointermove", (e) => {
+    if (dragX === null) return;
+    const d = (e.clientX - dragX) / 200;
+    phi += d; velocity = d * 0.4; dragX = e.clientX;
+  });
+  const up = () => (dragX = null);
+  canvas.addEventListener("pointerup", up);
+  canvas.addEventListener("pointercancel", up);
+
+  new ResizeObserver(() => (size = canvas.offsetWidth)).observe(canvas);
+  // Stop drawing when off-screen or the tab is hidden
+  new IntersectionObserver(([e]) => (e.isIntersecting ? start() : cancelAnimationFrame(raf))).observe(canvas);
+  document.addEventListener("visibilitychange", () => (document.hidden ? cancelAnimationFrame(raf) : start()));
+</script>
+</body>
+</html>

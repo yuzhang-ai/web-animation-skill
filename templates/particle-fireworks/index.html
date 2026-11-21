@@ -1,0 +1,142 @@
+<!doctype html>
+<!--
+  Template: particle-fireworks — Particle fireworks
+  Stack: Proton (CanvasRenderer)
+  Credit: original for this repo (from the web-animation-skill showcase). MIT.
+  Change: Rate / Life / Velocity spans, Gravity, colours, the fade alpha (0.24).
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Particle fireworks</title>
+<script>{ const q = new URLSearchParams(location.search); if (q.has("embed")) document.documentElement.classList.add("embed"); if (q.get("theme") === "light") document.documentElement.classList.add("light"); }</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500&family=Space+Grotesk:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0b0d; --card: #121418; --card-2: #16191e; --line: rgba(255,255,255,.07); --line-2: rgba(255,255,255,.12);
+    --ink: #f2f0ea; --muted: #8b909a; --dim: #4b505a;
+    --lime: #d7ff5a; --violet: #9a8cff; --cyan: #5fd4ff; --coral: #ff7a59;
+    --ease-out: cubic-bezier(0.16, 1, 0.3, 1); --ease-inout: cubic-bezier(0.65, 0, 0.35, 1);
+    --stage: #0d0e12; --tile: #262a33;
+  }
+  /* ?theme=light: warm paper, never pure white; accents one step darker so they keep their contrast */
+  html.light {
+    color-scheme: light;
+    --bg: #f1ede4; --card: #f7f4ed; --card-2: #fbf9f4; --line: rgba(40,32,16,.09); --line-2: rgba(40,32,16,.16);
+    --ink: #1c1b18; --muted: #6d695f; --dim: #a8a295;
+    --lime: #7da600; --violet: #6b58e8; --cyan: #0a92c9; --coral: #e8552f;
+    --stage: #ede8dd; --tile: #ddd6c6;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; overflow-x: clip; }
+  body { min-height: 100vh; display: grid; place-items: center; padding: 32px 16px; background: var(--bg); color: var(--ink);
+         font: 15px/1.45 "Space Grotesk", system-ui, sans-serif; }
+  .mono { font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 11px; letter-spacing: .08em; text-transform: uppercase; }
+  .frame { width: min(var(--w, 720px), calc(100vw - 32px)); }
+  .frame > h1 { margin: 0 0 4px; font: 400 clamp(30px, 4vw, 44px)/1 "Instrument Serif", serif; letter-spacing: -.02em; }
+  .frame > p { margin: 0 0 18px; color: var(--muted); }
+  .stage { position: relative; height: var(--h, 420px); border-radius: 24px; overflow: hidden;
+           background: linear-gradient(180deg, var(--card-2), var(--card)); box-shadow: inset 0 0 0 1px var(--line); }
+  .stage .hint { position: absolute; left: 16px; bottom: 12px; color: var(--dim); font-size: 10px; pointer-events: none; }
+  /* ?embed: just the effect, edge to edge (used by the template pages' preview) */
+  html.embed body { padding: 0; place-items: stretch; }
+  html.embed .frame { width: 100%; }
+  html.embed .frame > h1, html.embed .frame > p { display: none; }
+  html.embed .stage, html.embed .hero { height: 100vh; border-radius: 0; box-shadow: none; }
+  .proton-stage { position: absolute; inset: 0; background: radial-gradient(120% 140% at 50% 110%, var(--card-2), var(--stage) 70%); cursor: crosshair; }
+  .proton-stage canvas { width: 100%; height: 100%; display: block; }
+</style>
+</head>
+<body>
+<main class="frame" style="--w:860px; --h:440px">
+  <h1>Particle fireworks</h1>
+  <p>Emitters spawn, initializers set each particle up, behaviours age it. Click to burst.</p>
+  <div class="stage"><div class="proton-stage"><canvas></canvas></div><span class="hint mono">move · click to burst</span></div>
+</main>
+<script src="https://cdn.jsdelivr.net/npm/proton-engine@7.1.5/build/proton.min.js"></script>
+<script>
+  const $ = (s, el = document) => el.querySelector(s);
+  const $$ = (s, el = document) => [...el.querySelectorAll(s)];
+  // ?theme=light switches the palette; canvases read these values, CSS reads the variables
+  const LIGHT = document.documentElement.classList.contains("light");
+  const C = LIGHT
+    ? { lime: "#7da600", violet: "#6b58e8", cyan: "#0a92c9", coral: "#e8552f", ink: "#1c1b18", muted: "#6d695f", bg: "#f1ede4", card: "#f7f4ed", card2: "#fbf9f4",
+        stage: "#ede8dd", tile: "#ddd6c6", dim: "#a8a295", line2: "rgba(40,32,16,.16)", blend: "source-over", fade: (a) => `rgba(237,232,221,${a})` }
+    : { lime: "#d7ff5a", violet: "#9a8cff", cyan: "#5fd4ff", coral: "#ff7a59", ink: "#f2f0ea", muted: "#8b909a", bg: "#0a0b0d", card: "#121418", card2: "#16191e",
+        stage: "#0d0e12", tile: "#262a33", dim: "#4b505a", line2: "rgba(255,255,255,.12)", blend: "lighter", fade: (a) => `rgba(13,14,18,${a})` };
+  const PALETTE = [C.lime, C.violet, C.cyan, C.coral], P4 = () => PALETTE;
+  const isLight = () => LIGHT, onTheme = () => {};
+
+  const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const observeSize = (el, fn) => { const ro = new ResizeObserver(() => fn(el.clientWidth, el.clientHeight)); ro.observe(el); fn(el.clientWidth, el.clientHeight); return ro; };
+  const rafLoop = (fn) => { let raf = 0, last = 0; const tick = (now) => { const dt = last ? Math.min(now - last, 50) / 1000 : 1 / 60; last = now; fn(dt, now); raf = requestAnimationFrame(tick); };
+    return { start() { last = 0; cancelAnimationFrame(raf); raf = requestAnimationFrame(tick); }, stop() { cancelAnimationFrame(raf); } }; };
+  function run(el, api) {
+    if (reduce) { api.still?.(); return; }
+    let visible = false, running = false;
+    const sync = () => { const on = visible && !document.hidden; if (on && !running) { running = true; api.start?.(); } else if (!on && running) { running = false; api.stop?.(); } };
+    new IntersectionObserver(([e]) => { visible = e.isIntersecting; sync(); }, { rootMargin: "60px" }).observe(el);
+    document.addEventListener("visibilitychange", sync);
+  }
+
+{
+  const card = $(".stage");
+  const P = window.Proton; if (!P?.default) throw new Error("proton failed to load"); // UMD namespace: default export + named classes
+  const host = $(".proton-stage", card), canvas = $("canvas", host), ctx = canvas.getContext("2d");
+  const dpr = Math.min(devicePixelRatio, 2);
+  let W = 0, H = 0;
+  observeSize(host, (w, h) => { W = w; H = h; canvas.width = Math.max(1, w * dpr); canvas.height = Math.max(1, h * dpr); });
+  const proton = new P.default();
+  const renderer = new P.CanvasRenderer(canvas);
+  renderer.onProtonUpdate = () => { // fade instead of clear → motion trails
+    ctx.globalCompositeOperation = "source-over"; ctx.fillStyle = C.fade(0.24); ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.globalCompositeOperation = C.blend;
+  };
+  proton.addRenderer(renderer);
+  const trail = new P.Emitter();
+  trail.rate = new P.Rate(new P.Span(2, 4), 0.02);
+  trail.addInitialize(new P.Mass(1));
+  trail.addInitialize(new P.Radius(1.2 * dpr, 3.2 * dpr));
+  trail.addInitialize(new P.Life(0.6, 1.4));
+  trail.addInitialize(new P.Velocity(new P.Span(0.3 * dpr, 1.2 * dpr), new P.Span(0, 360), "polar"));
+  trail.addBehaviour(new P.Alpha(1, 0));
+  trail.addBehaviour(new P.Scale(1, 0.2));
+  let trailColor = new P.Color([C.lime, C.cyan, C.ink]);
+  trail.addBehaviour(trailColor);
+  onTheme(() => { trail.removeBehaviour(trailColor); trailColor = new P.Color([C.lime, C.cyan, C.ink]); trail.addBehaviour(trailColor); ctx.fillStyle = C.stage; ctx.fillRect(0, 0, canvas.width, canvas.height); });
+  trail.emit(); proton.addEmitter(trail);
+  function burst(x, y) {
+    const e = new P.Emitter();
+    e.rate = new P.Rate(new P.Span(70, 110), 0);
+    e.addInitialize(new P.Mass(1));
+    e.addInitialize(new P.Radius(1.4 * dpr, 3 * dpr));
+    e.addInitialize(new P.Life(1.0, 1.9));
+    e.addInitialize(new P.Velocity(new P.Span(1.6 * dpr, 4.2 * dpr), new P.Span(0, 360), "polar"));
+    e.addBehaviour(new P.Alpha(1, 0));
+    e.addBehaviour(new P.Scale(1, 0.1));
+    e.addBehaviour(new P.Gravity(1.6 * dpr));
+    e.addBehaviour(new P.Color(P4()[Math.floor(Math.random() * 4)], [C.coral, C.violet, C.ink]));
+    e.p.x = x * dpr; e.p.y = y * dpr;
+    e.emit("once"); proton.addEmitter(e);
+    setTimeout(() => { proton.removeEmitter(e); e.destroy(); }, 2600);
+  }
+  let ptr = null, t = 0, bt = 0;
+  host.addEventListener("pointermove", (e) => { const r = host.getBoundingClientRect(); ptr = { x: e.clientX - r.left, y: e.clientY - r.top }; });
+  host.addEventListener("pointerleave", () => (ptr = null));
+  host.addEventListener("pointerdown", (e) => { const r = host.getBoundingClientRect(); burst(e.clientX - r.left, e.clientY - r.top); });
+  const loop = rafLoop((dt) => {
+    t += dt; bt += dt;
+    const tx = ptr ? ptr.x : W / 2 + Math.sin(t * 0.8) * W * 0.4, ty = ptr ? ptr.y : H * 0.62 + Math.sin(t * 1.9) * H * 0.22;
+    trail.p.x += (tx * dpr - trail.p.x) * 0.3; trail.p.y += (ty * dpr - trail.p.y) * 0.3;
+    if (bt > 1.1) { bt = 0; burst(W * (0.15 + Math.random() * 0.7), H * (0.2 + Math.random() * 0.35)); }
+    proton.update();
+  });
+  trail.p.x = (W / 2) * dpr; trail.p.y = (H / 2) * dpr;
+  run(card, { start: loop.start, stop: loop.stop, still() { burst(W / 2, H / 2); for (let i = 0; i < 24; i++) proton.update(); } });
+}
+</script>
+</body>
+</html>

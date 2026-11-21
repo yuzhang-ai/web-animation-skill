@@ -1,0 +1,29 @@
+{
+  "id": "infinite-marquee",
+  "title": "Infinite marquee",
+  "summary": "Rows of logos or tags scroll forever in opposite directions, fading at the edges and pausing on hover.",
+  "category": "scroll",
+  "group": "native",
+  "stack": "CSS animation",
+  "libs": [],
+  "useFor": [
+    "logo walls",
+    "tech-stack strips",
+    "testimonial tickers"
+  ],
+  "tags": [
+    "ticker",
+    "logos",
+    "mask-image",
+    "progressive-enhancement"
+  ],
+  "source": {
+    "mode": "inspired",
+    "author": "Kevin Powell",
+    "url": "https://codepen.io/kevinpowell/pen/LYMXPaJ",
+    "license": "MIT (CodePen public pen)"
+  },
+  "check": {
+    "shot": "body"
+  }
+}

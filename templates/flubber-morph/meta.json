@@ -1,0 +1,34 @@
+{
+  "id": "flubber-morph",
+  "title": "Flubber morph",
+  "summary": "One SVG path morphs circle → star → six dots (split) → heart (merge) → squircle and back, with matching gradient shifts. Flubber handles shapes with different point counts.",
+  "category": "transition",
+  "group": "flubber",
+  "featured": true,
+  "stack": "Flubber",
+  "libs": [
+    {
+      "name": "flubber",
+      "version": "0.4.2",
+      "url": "https://cdn.jsdelivr.net/npm/flubber@0.4.2/build/flubber.min.js",
+      "license": "MIT"
+    }
+  ],
+  "useFor": [
+    "icon state changes",
+    "logo reveals",
+    "playful illustrations"
+  ],
+  "tags": [
+    "morph",
+    "svg",
+    "separate",
+    "combine"
+  ],
+  "source": {
+    "mode": "original",
+    "author": "web-animation-skill",
+    "url": "https://github.com/yuzhang-ai/web-animation-skill",
+    "license": "MIT"
+  }
+}

@@ -1,0 +1,31 @@
+{
+  "id": "svg-spinners",
+  "title": "SVG spinners",
+  "summary": "Sixteen loading indicators (rings, dots, bars, blocks, gooey balls), each a tiny self-contained SVG animated with SMIL. Colored by currentColor; click to copy.",
+  "category": "loader",
+  "group": "native",
+  "stack": "SVG + SMIL",
+  "libs": [],
+  "useFor": [
+    "buttons in a loading state",
+    "inline loading text",
+    "empty states",
+    "AI \"thinking\" indicators"
+  ],
+  "tags": [
+    "spinner",
+    "loader",
+    "smil",
+    "currentColor",
+    "zero-js"
+  ],
+  "source": {
+    "mode": "adapted",
+    "author": "Shubham Jain",
+    "url": "https://github.com/shubhamjain/svg-spinners",
+    "license": "MIT"
+  },
+  "check": {
+    "shot": ".grid"
+  }
+}

@@ -1,0 +1,32 @@
+{
+  "id": "seam-transition",
+  "title": "Ink seam transition",
+  "summary": "As the next section scrolls up, the edge between a dark hero and a light page bleeds like ink into wet paper: ragged lobes, thin runs, darker rims, wider when you scroll fast.",
+  "category": "transition",
+  "group": "webgl",
+  "stack": "WebGL 2 shader + native scroll",
+  "libs": [],
+  "useFor": [
+    "hero → content transitions",
+    "editorial / studio sites",
+    "section breaks with character"
+  ],
+  "tags": [
+    "scroll",
+    "shader",
+    "fbm-noise",
+    "section-edge",
+    "ink"
+  ],
+  "source": {
+    "mode": "adapted",
+    "author": "Codrops",
+    "url": "https://github.com/codrops/SeamTransitions",
+    "license": "MIT"
+  },
+  "check": {
+    "scroll": 900,
+    "after": 500,
+    "shot": "viewport"
+  }
+}

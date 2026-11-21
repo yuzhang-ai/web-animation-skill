@@ -1,0 +1,35 @@
+{
+  "id": "donut-transition",
+  "title": "Donut transition",
+  "summary": "A donut chart re-flows to new data every two seconds: arcs tween angle by angle with attrTween, and the centre percentage counts with textTween.",
+  "category": "data",
+  "group": "d3",
+  "featured": true,
+  "stack": "D3 transitions",
+  "libs": [
+    {
+      "name": "d3",
+      "version": "7.9.2",
+      "url": "https://cdn.jsdelivr.net/npm/d3@7.9.2/dist/d3.min.js",
+      "license": "ISC"
+    }
+  ],
+  "useFor": [
+    "dashboards",
+    "live KPIs",
+    "report pages"
+  ],
+  "tags": [
+    "d3",
+    "attrTween",
+    "textTween",
+    "pie",
+    "data-join"
+  ],
+  "source": {
+    "mode": "original",
+    "author": "web-animation-skill",
+    "url": "https://github.com/yuzhang-ai/web-animation-skill",
+    "license": "MIT"
+  }
+}

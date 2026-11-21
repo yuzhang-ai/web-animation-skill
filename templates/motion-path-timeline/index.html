@@ -1,0 +1,145 @@
+<!doctype html>
+<!--
+  Template: motion-path-timeline — Motion path timeline
+  Stack: GSAP MotionPath + DrawSVG
+  Credit: original for this repo (from the web-animation-skill showcase). MIT.
+  Change: P (node positions), names, the gradient stops, durations in the timeline.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Motion path timeline</title>
+<script>{ const q = new URLSearchParams(location.search); if (q.has("embed")) document.documentElement.classList.add("embed"); if (q.get("theme") === "light") document.documentElement.classList.add("light"); }</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500&family=Space+Grotesk:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0b0d; --card: #121418; --card-2: #16191e; --line: rgba(255,255,255,.07); --line-2: rgba(255,255,255,.12);
+    --ink: #f2f0ea; --muted: #8b909a; --dim: #4b505a;
+    --lime: #d7ff5a; --violet: #9a8cff; --cyan: #5fd4ff; --coral: #ff7a59;
+    --ease-out: cubic-bezier(0.16, 1, 0.3, 1); --ease-inout: cubic-bezier(0.65, 0, 0.35, 1);
+    --stage: #0d0e12; --tile: #262a33;
+  }
+  /* ?theme=light: warm paper, never pure white; accents one step darker so they keep their contrast */
+  html.light {
+    color-scheme: light;
+    --bg: #f1ede4; --card: #f7f4ed; --card-2: #fbf9f4; --line: rgba(40,32,16,.09); --line-2: rgba(40,32,16,.16);
+    --ink: #1c1b18; --muted: #6d695f; --dim: #a8a295;
+    --lime: #7da600; --violet: #6b58e8; --cyan: #0a92c9; --coral: #e8552f;
+    --stage: #ede8dd; --tile: #ddd6c6;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; overflow-x: clip; }
+  body { min-height: 100vh; display: grid; place-items: center; padding: 32px 16px; background: var(--bg); color: var(--ink);
+         font: 15px/1.45 "Space Grotesk", system-ui, sans-serif; }
+  .mono { font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 11px; letter-spacing: .08em; text-transform: uppercase; }
+  .frame { width: min(var(--w, 720px), calc(100vw - 32px)); }
+  .frame > h1 { margin: 0 0 4px; font: 400 clamp(30px, 4vw, 44px)/1 "Instrument Serif", serif; letter-spacing: -.02em; }
+  .frame > p { margin: 0 0 18px; color: var(--muted); }
+  .stage { position: relative; height: var(--h, 420px); border-radius: 24px; overflow: hidden;
+           background: linear-gradient(180deg, var(--card-2), var(--card)); box-shadow: inset 0 0 0 1px var(--line); }
+  .stage .hint { position: absolute; left: 16px; bottom: 12px; color: var(--dim); font-size: 10px; pointer-events: none; }
+  /* ?embed: just the effect, edge to edge (used by the template pages' preview) */
+  html.embed body { padding: 0; place-items: stretch; }
+  html.embed .frame { width: 100%; }
+  html.embed .frame > h1, html.embed .frame > p { display: none; }
+  html.embed .stage, html.embed .hero { height: 100vh; border-radius: 0; box-shadow: none; }
+  .wf svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; padding: 20px; }
+  .wf .base { fill: none; stroke: var(--line-2); stroke-width: 2; stroke-dasharray: 2 7; stroke-linecap: round; }
+  .wf .glow { fill: none; stroke: url(#wfGrad); stroke-width: 3.5; stroke-linecap: round; filter: drop-shadow(0 0 6px rgba(215,255,90,.55)); }
+  .wf .node { fill: var(--card-2); stroke: var(--dim); stroke-width: 2; }
+  .wf .ring { fill: none; stroke: var(--lime); stroke-width: 1.5; opacity: 0; }
+  .wf text { font: 500 14px "Space Grotesk", sans-serif; fill: var(--dim); text-anchor: middle; }
+  .wf text.cap { font: 400 9px "JetBrains Mono", monospace; letter-spacing: .08em; text-transform: uppercase; }
+  .wf .comet-core { fill: #fff; } .wf .comet-halo { fill: var(--lime); opacity: .35; filter: blur(5px); }
+</style>
+</head>
+<body>
+<main class="frame" style="--w:860px; --h:300px">
+  <h1>Motion path timeline</h1>
+  <p>MotionPath moves the comet, DrawSVG paints the trail, one timeline sequences it all.</p>
+  <div class="stage wf"><svg viewBox="0 0 640 150" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
+    <defs><linearGradient id="wfGrad" x1="0" x2="1"><stop offset="0" stop-color="#9a8cff"/><stop offset=".55" stop-color="#5fd4ff"/><stop offset="1" stop-color="#d7ff5a"/></linearGradient></defs>
+    <path class="base"></path><path class="glow"></path><g class="nodes"></g>
+    <g class="comet"><circle class="comet-halo" r="12"/><circle class="comet-core" r="4"/></g>
+  </svg></div>
+</main>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.15.1/dist/gsap.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.15.1/dist/MotionPathPlugin.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.15.1/dist/DrawSVGPlugin.min.js"></script>
+<script>
+  const $ = (s, el = document) => el.querySelector(s);
+  const $$ = (s, el = document) => [...el.querySelectorAll(s)];
+  // ?theme=light switches the palette; canvases read these values, CSS reads the variables
+  const LIGHT = document.documentElement.classList.contains("light");
+  const C = LIGHT
+    ? { lime: "#7da600", violet: "#6b58e8", cyan: "#0a92c9", coral: "#e8552f", ink: "#1c1b18", muted: "#6d695f", bg: "#f1ede4", card: "#f7f4ed", card2: "#fbf9f4",
+        stage: "#ede8dd", tile: "#ddd6c6", dim: "#a8a295", line2: "rgba(40,32,16,.16)", blend: "source-over", fade: (a) => `rgba(237,232,221,${a})` }
+    : { lime: "#d7ff5a", violet: "#9a8cff", cyan: "#5fd4ff", coral: "#ff7a59", ink: "#f2f0ea", muted: "#8b909a", bg: "#0a0b0d", card: "#121418", card2: "#16191e",
+        stage: "#0d0e12", tile: "#262a33", dim: "#4b505a", line2: "rgba(255,255,255,.12)", blend: "lighter", fade: (a) => `rgba(13,14,18,${a})` };
+  const PALETTE = [C.lime, C.violet, C.cyan, C.coral], P4 = () => PALETTE;
+  const isLight = () => LIGHT, onTheme = () => {};
+
+  const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const observeSize = (el, fn) => { const ro = new ResizeObserver(() => fn(el.clientWidth, el.clientHeight)); ro.observe(el); fn(el.clientWidth, el.clientHeight); return ro; };
+  const rafLoop = (fn) => { let raf = 0, last = 0; const tick = (now) => { const dt = last ? Math.min(now - last, 50) / 1000 : 1 / 60; last = now; fn(dt, now); raf = requestAnimationFrame(tick); };
+    return { start() { last = 0; cancelAnimationFrame(raf); raf = requestAnimationFrame(tick); }, stop() { cancelAnimationFrame(raf); } }; };
+  function run(el, api) {
+    if (reduce) { api.still?.(); return; }
+    let visible = false, running = false;
+    const sync = () => { const on = visible && !document.hidden; if (on && !running) { running = true; api.start?.(); } else if (!on && running) { running = false; api.stop?.(); } };
+    new IntersectionObserver(([e]) => { visible = e.isIntersecting; sync(); }, { rootMargin: "60px" }).observe(el);
+    document.addEventListener("visibilitychange", sync);
+  }
+
+{
+
+  gsap.registerPlugin(MotionPathPlugin, DrawSVGPlugin);
+  const card = $(".wf"), svg = $("svg", card), base = $(".base", svg), glow = $(".glow", svg), comet = $(".comet", svg), nodesG = $(".nodes", svg);
+  const P = [[56, 98], [184, 50], [320, 100], [456, 48], [584, 96]];
+  const names = [["Brief", "motion spec"], ["Build", "lightest tool"], ["Animate", "tokens"], ["Refine", "verify frames"], ["Render", "ship / export"]];
+  // Catmull-Rom → cubic Bézier through every node
+  const pts = [P[0], ...P, P[P.length - 1]];
+  let d = `M${P[0][0]},${P[0][1]}`;
+  for (let i = 1; i < pts.length - 2; i++) {
+    const [p0, p1, p2, p3] = [pts[i - 1], pts[i], pts[i + 1], pts[i + 2]];
+    d += ` C${p1[0] + (p2[0] - p0[0]) / 6},${p1[1] + (p2[1] - p0[1]) / 6} ${p2[0] - (p3[0] - p1[0]) / 6},${p2[1] - (p3[1] - p1[1]) / 6} ${p2[0]},${p2[1]}`;
+  }
+  base.setAttribute("d", d); glow.setAttribute("d", d);
+  // Where along the path each node sits (0–1), so the comet can stop exactly on it
+  const total = base.getTotalLength();
+  const frac = P.map(([x, y]) => { let best = 0, bd = Infinity; for (let l = 0; l <= total; l += 1) { const q = base.getPointAtLength(l); const dd = (q.x - x) ** 2 + (q.y - y) ** 2; if (dd < bd) { bd = dd; best = l; } } return best / total; });
+  const nodes = P.map(([x, y], i) => {
+    const up = y < 75;
+    nodesG.insertAdjacentHTML("beforeend", `<g><circle class="ring" cx="${x}" cy="${y}" r="8"/><circle class="node" cx="${x}" cy="${y}" r="7"/><text x="${x}" y="${up ? y - 20 : y + 30}">${names[i][0]}</text><text class="cap" x="${x}" y="${up ? y - 36 : y + 44}">${names[i][1]}</text></g>`);
+    const g = nodesG.lastElementChild; return { ring: $(".ring", g), dot: $(".node", g), label: $$("text", g) };
+  });
+  gsap.set(glow, { drawSVG: "0% 0%" });
+  gsap.set(comet, { x: P[0][0], y: P[0][1], autoAlpha: 0 });
+  const pop = (tl, i, at) => tl
+    .to(nodes[i].dot, { attr: { r: 9 }, fill: C.lime, stroke: C.lime, duration: 0.45, ease: "back.out(3)" }, at)
+    .fromTo(nodes[i].ring, { attr: { r: 8 }, opacity: 0.9 }, { attr: { r: 34 }, opacity: 0, duration: 1.1, ease: "power2.out" }, at)
+    .to(nodes[i].label, { fill: (k) => (k ? C.lime : C.ink), duration: 0.3 }, at);
+  const tl = gsap.timeline({ repeat: -1, repeatDelay: 0.3, paused: true });
+  tl.to(comet, { autoAlpha: 1, duration: 0.3 });
+  pop(tl, 0, "<");
+  for (let i = 1; i < P.length; i++) {
+    tl.to(comet, { motionPath: { path: base, align: base, alignOrigin: [0.5, 0.5], start: frac[i - 1], end: frac[i] }, duration: 0.85, ease: "power2.inOut" }, "+=0.15")
+      .to(glow, { drawSVG: `0% ${frac[i] * 100}%`, duration: 0.85, ease: "power2.inOut" }, "<");
+    pop(tl, i, ">-0.05");
+  }
+  tl.to(comet, { scale: 2.4, autoAlpha: 0, duration: 0.6, ease: "power2.out", transformOrigin: "50% 50%" }, "+=0.4")
+    .to(glow, { drawSVG: "100% 100%", duration: 0.9, ease: "power3.inOut" }, "<")
+    .to(nodes.map((n) => n.dot), { attr: { r: 7 }, fill: C.card, stroke: C.dim, duration: 0.5, stagger: 0.06 }, "<0.2")
+    .to(nodes.flatMap((n) => n.label), { fill: C.dim, duration: 0.5 }, "<")
+    .set(comet, { scale: 1, x: P[0][0], y: P[0][1] });
+  run(card, {
+    start() { tl.play(); }, stop() { tl.pause(); },
+    still() { gsap.set(glow, { drawSVG: "0% 100%" }); nodes.forEach((n) => { gsap.set(n.dot, { attr: { r: 8 }, fill: C.lime, stroke: C.lime }); gsap.set(n.label, { fill: C.ink }); }); },
+  });
+}
+</script>
+</body>
+</html>

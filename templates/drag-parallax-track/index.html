@@ -1,0 +1,112 @@
+<!doctype html>
+<!--
+  Template: drag-parallax-track — drag a row of images; each image pans inside its frame
+  Stack: Web Animations API (el.animate) + pointer events, no library
+  Credit: effect popularised by Hyperplexed's CodePen (MWXBRBp) and YouTube tutorial.
+          Rewritten from scratch for this repo. MIT.
+  Change: replace makeArt() with real <img src="..."> (keep object-fit: cover), speed, easing.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Drag parallax track</title>
+<script>if (new URLSearchParams(location.search).get("theme") === "light") document.documentElement.classList.add("light");</script>
+<style>
+  :root { --bg: #0b0c0f; --fg: #ecebe6; --muted: #8b8b86; }
+  html, body { margin: 0; height: 100%; }
+  body { background: var(--bg); color: var(--fg);
+         font: 16px/1.5 ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif; }
+  /* The stage clips the track so the page never scrolls sideways */
+  .stage { position: fixed; inset: 0; overflow: hidden; touch-action: pan-y; cursor: grab; user-select: none; }
+  .stage.dragging { cursor: grabbing; }
+  .hint { position: fixed; left: 24px; bottom: 20px; margin: 0; color: var(--muted); font-size: 14px; pointer-events: none; }
+
+  /* left: 50% puts the first image at the centre; -100% puts the last one there */
+  .track {
+    position: absolute; left: 50%; top: 50%;
+    display: flex; gap: 4vmin;
+    transform: translate(0%, -50%);
+  }
+  .track img {
+    width: 40vmin; height: 56vmin; flex: none;
+    object-fit: cover; object-position: 100% center;   /* panned by JS */
+    border-radius: 6px; -webkit-user-drag: none;
+  }
+  /* ?theme=light: warm paper, never pure white; accents one step darker so they keep their contrast */
+  html.light { color-scheme: light; --bg: #f1ede4; --fg: #1c1b18; --muted: #6d695f; --accent: #7da600; --line: #d9d2c3;
+               --card: #f7f4ed; --panel: #e9e3d6; --edge: rgb(40 32 16 / 0.1); --glow: 125 166 0; }
+</style>
+</head>
+<body>
+<div class="stage" id="stage" tabindex="0" aria-label="Image gallery. Drag, scroll or use arrow keys.">
+  <div class="track" id="track"></div>
+</div>
+<p class="hint">Drag, scroll, or use ← →</p>
+<script>
+  const stage = document.getElementById("stage");
+  const track = document.getElementById("track");
+  const reduce = matchMedia("(prefers-reduced-motion: reduce)");
+
+  // Procedural "photos" so the template runs offline. Swap for real images.
+  function makeArt(seed) {
+    const c = document.createElement("canvas"); c.width = 600; c.height = 840;
+    const g = c.getContext("2d");
+    let s = seed * 9301 + 49297; const rnd = () => ((s = (s * 9301 + 49297) % 233280) / 233280);
+    const hue = (seed * 47) % 360;
+    const sky = g.createLinearGradient(0, 0, 0, 840);
+    sky.addColorStop(0, `hsl(${hue} 45% 18%)`); sky.addColorStop(1, `hsl(${hue + 30} 60% 62%)`);
+    g.fillStyle = sky; g.fillRect(0, 0, 600, 840);
+    g.fillStyle = `hsl(${hue + 50} 90% 80% / 0.9)`;
+    g.beginPath(); g.arc(150 + rnd() * 300, 220 + rnd() * 160, 40 + rnd() * 50, 0, Math.PI * 2); g.fill();
+    for (let layer = 0; layer < 4; layer++) {
+      g.fillStyle = `hsl(${hue + 200} ${30 - layer * 4}% ${30 - layer * 6}%)`;
+      g.beginPath(); g.moveTo(0, 840);
+      const base = 460 + layer * 90;
+      for (let x = 0; x <= 600; x += 20) g.lineTo(x, base - Math.abs(Math.sin(x / (60 + layer * 30) + seed + layer)) * (120 - layer * 20) - rnd() * 12);
+      g.lineTo(600, 840); g.fill();
+    }
+    return c.toDataURL("image/jpeg", 0.85);
+  }
+  for (let i = 0; i < 8; i++) {
+    const img = new Image(); img.src = makeArt(i + 1); img.alt = `Landscape ${i + 1}`; img.draggable = false;
+    track.append(img);
+  }
+  const images = [...track.children];
+
+  let percent = 0;          // 0 … -100, where the track rests
+  let downX = null, startPercent = 0;
+
+  function render(p, instant) {
+    percent = Math.max(-100, Math.min(0, p));
+    const opts = { duration: instant || reduce.matches ? 0 : 1200, fill: "forwards", easing: "cubic-bezier(0.16, 1, 0.3, 1)" };
+    track.animate({ transform: `translate(${percent}%, -50%)` }, opts);
+    // Each image pans the opposite way inside its frame: that is the parallax
+    for (const img of images) img.animate({ objectPosition: `${100 + percent}% center` }, opts);
+  }
+
+  stage.addEventListener("pointerdown", (e) => {
+    downX = e.clientX; startPercent = percent;
+    stage.classList.add("dragging"); stage.setPointerCapture(e.pointerId);
+  });
+  stage.addEventListener("pointermove", (e) => {
+    if (downX === null) return;
+    // Dragging half the window width moves the whole track
+    render(startPercent + ((e.clientX - downX) / (innerWidth / 2)) * 100);
+  });
+  const end = () => { downX = null; stage.classList.remove("dragging"); };
+  stage.addEventListener("pointerup", end);
+  stage.addEventListener("pointercancel", end);
+
+  stage.addEventListener("wheel", (e) => {
+    e.preventDefault();
+    render(percent - (e.deltaY + e.deltaX) / 12);
+  }, { passive: false });
+  stage.addEventListener("keydown", (e) => {
+    if (e.key === "ArrowRight") render(percent - 100 / (images.length - 1));
+    if (e.key === "ArrowLeft") render(percent + 100 / (images.length - 1));
+  });
+  render(-30, true);   // start a little in, so the screen is full on load
+</script>
+</body>
+</html>

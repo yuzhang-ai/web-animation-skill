@@ -1,0 +1,35 @@
+{
+  "id": "particle-fireworks",
+  "title": "Particle fireworks",
+  "summary": "A sparkling trail follows the pointer and fireworks burst every second, with gravity, colour fades and light trails from additive blending over a fading canvas.",
+  "category": "background",
+  "group": "proton",
+  "featured": true,
+  "stack": "Proton (CanvasRenderer)",
+  "libs": [
+    {
+      "name": "proton-engine",
+      "version": "7.1.5",
+      "url": "https://cdn.jsdelivr.net/npm/proton-engine@7.1.5/build/proton.min.js",
+      "license": "MIT"
+    }
+  ],
+  "useFor": [
+    "celebrations (signup, payment done)",
+    "hero backgrounds",
+    "cursor trails"
+  ],
+  "tags": [
+    "particles",
+    "emitter",
+    "fireworks",
+    "trails",
+    "additive"
+  ],
+  "source": {
+    "mode": "original",
+    "author": "web-animation-skill",
+    "url": "https://github.com/yuzhang-ai/web-animation-skill",
+    "license": "MIT"
+  }
+}

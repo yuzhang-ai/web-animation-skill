@@ -1,0 +1,122 @@
+<!doctype html>
+<!--
+  Template: split-flap-words — Split-flap words
+  Stack: GSAP SplitText + timeline
+  Credit: original for this repo (from the web-animation-skill showcase). MIT.
+  Change: the words and caps, perspective, stagger, hold time (+=1.0).
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Split-flap words</title>
+<script>{ const q = new URLSearchParams(location.search); if (q.has("embed")) document.documentElement.classList.add("embed"); if (q.get("theme") === "light") document.documentElement.classList.add("light"); }</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500&family=Space+Grotesk:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0b0d; --card: #121418; --card-2: #16191e; --line: rgba(255,255,255,.07); --line-2: rgba(255,255,255,.12);
+    --ink: #f2f0ea; --muted: #8b909a; --dim: #4b505a;
+    --lime: #d7ff5a; --violet: #9a8cff; --cyan: #5fd4ff; --coral: #ff7a59;
+    --ease-out: cubic-bezier(0.16, 1, 0.3, 1); --ease-inout: cubic-bezier(0.65, 0, 0.35, 1);
+    --stage: #0d0e12; --tile: #262a33;
+  }
+  /* ?theme=light: warm paper, never pure white; accents one step darker so they keep their contrast */
+  html.light {
+    color-scheme: light;
+    --bg: #f1ede4; --card: #f7f4ed; --card-2: #fbf9f4; --line: rgba(40,32,16,.09); --line-2: rgba(40,32,16,.16);
+    --ink: #1c1b18; --muted: #6d695f; --dim: #a8a295;
+    --lime: #7da600; --violet: #6b58e8; --cyan: #0a92c9; --coral: #e8552f;
+    --stage: #ede8dd; --tile: #ddd6c6;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; overflow-x: clip; }
+  body { min-height: 100vh; display: grid; place-items: center; padding: 32px 16px; background: var(--bg); color: var(--ink);
+         font: 15px/1.45 "Space Grotesk", system-ui, sans-serif; }
+  .mono { font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 11px; letter-spacing: .08em; text-transform: uppercase; }
+  .frame { width: min(var(--w, 720px), calc(100vw - 32px)); }
+  .frame > h1 { margin: 0 0 4px; font: 400 clamp(30px, 4vw, 44px)/1 "Instrument Serif", serif; letter-spacing: -.02em; }
+  .frame > p { margin: 0 0 18px; color: var(--muted); }
+  .stage { position: relative; height: var(--h, 420px); border-radius: 24px; overflow: hidden;
+           background: linear-gradient(180deg, var(--card-2), var(--card)); box-shadow: inset 0 0 0 1px var(--line); }
+  .stage .hint { position: absolute; left: 16px; bottom: 12px; color: var(--dim); font-size: 10px; pointer-events: none; }
+  /* ?embed: just the effect, edge to edge (used by the template pages' preview) */
+  html.embed body { padding: 0; place-items: stretch; }
+  html.embed .frame { width: 100%; }
+  html.embed .frame > h1, html.embed .frame > p { display: none; }
+  html.embed .stage, html.embed .hero { height: 100vh; border-radius: 0; box-shadow: none; }
+  .gs { position: absolute; inset: 0; padding: 32px; display: flex; flex-direction: column; justify-content: center; gap: 14px; }
+  .gs-words { position: relative; height: 1.05em; font: italic 400 clamp(48px, 9vw, 84px)/1 "Instrument Serif", serif; letter-spacing: -.01em; }
+  .gs-word { position: absolute; left: 0; top: 0; white-space: nowrap; perspective: 420px; visibility: hidden; }
+  .gs-word > div { transform-style: preserve-3d; backface-visibility: hidden; }
+  .gs-cap { color: var(--muted); min-height: 1.4em; }
+  .gs-scrub { height: 2px; background: var(--line-2); border-radius: 2px; position: relative; }
+  .gs-scrub i { position: absolute; inset: 0; transform-origin: 0 50%; transform: scaleX(0); background: linear-gradient(90deg, var(--violet), var(--lime)); border-radius: 2px; }
+  .gs-scrub b { position: absolute; top: -4px; width: 10px; height: 10px; margin-left: -5px; border-radius: 50%; background: var(--lime); box-shadow: 0 0 10px var(--lime); left: 0; }
+</style>
+</head>
+<body>
+<main class="frame" style="--w:640px; --h:300px">
+  <h1>Split-flap words</h1>
+  <p>SplitText cuts each word into letters; one timeline flips them through in 3D.</p>
+  <div class="stage"><div class="gs">
+    <div class="gs-words"><span class="gs-word">Timeline.</span><span class="gs-word">Stagger.</span><span class="gs-word">Scrub.</span><span class="gs-word">Split.</span></div>
+    <div class="gs-cap mono">&nbsp;</div>
+    <div class="gs-scrub"><i></i><b></b></div>
+  </div></div>
+</main>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.15.1/dist/gsap.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.15.1/dist/SplitText.min.js"></script>
+<script>
+  const $ = (s, el = document) => el.querySelector(s);
+  const $$ = (s, el = document) => [...el.querySelectorAll(s)];
+  // ?theme=light switches the palette; canvases read these values, CSS reads the variables
+  const LIGHT = document.documentElement.classList.contains("light");
+  const C = LIGHT
+    ? { lime: "#7da600", violet: "#6b58e8", cyan: "#0a92c9", coral: "#e8552f", ink: "#1c1b18", muted: "#6d695f", bg: "#f1ede4", card: "#f7f4ed", card2: "#fbf9f4",
+        stage: "#ede8dd", tile: "#ddd6c6", dim: "#a8a295", line2: "rgba(40,32,16,.16)", blend: "source-over", fade: (a) => `rgba(237,232,221,${a})` }
+    : { lime: "#d7ff5a", violet: "#9a8cff", cyan: "#5fd4ff", coral: "#ff7a59", ink: "#f2f0ea", muted: "#8b909a", bg: "#0a0b0d", card: "#121418", card2: "#16191e",
+        stage: "#0d0e12", tile: "#262a33", dim: "#4b505a", line2: "rgba(255,255,255,.12)", blend: "lighter", fade: (a) => `rgba(13,14,18,${a})` };
+  const PALETTE = [C.lime, C.violet, C.cyan, C.coral], P4 = () => PALETTE;
+  const isLight = () => LIGHT, onTheme = () => {};
+
+  const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const observeSize = (el, fn) => { const ro = new ResizeObserver(() => fn(el.clientWidth, el.clientHeight)); ro.observe(el); fn(el.clientWidth, el.clientHeight); return ro; };
+  const rafLoop = (fn) => { let raf = 0, last = 0; const tick = (now) => { const dt = last ? Math.min(now - last, 50) / 1000 : 1 / 60; last = now; fn(dt, now); raf = requestAnimationFrame(tick); };
+    return { start() { last = 0; cancelAnimationFrame(raf); raf = requestAnimationFrame(tick); }, stop() { cancelAnimationFrame(raf); } }; };
+  function run(el, api) {
+    if (reduce) { api.still?.(); return; }
+    let visible = false, running = false;
+    const sync = () => { const on = visible && !document.hidden; if (on && !running) { running = true; api.start?.(); } else if (!on && running) { running = false; api.stop?.(); } };
+    new IntersectionObserver(([e]) => { visible = e.isIntersecting; sync(); }, { rootMargin: "60px" }).observe(el);
+    document.addEventListener("visibilitychange", sync);
+  }
+
+{
+
+  gsap.registerPlugin(SplitText);
+  document.fonts.ready.then(() => {
+    const card = $(".gs"), words = $$(".gs-word", card), cap = $(".gs-cap", card), fill = $(".gs-scrub i", card), head = $(".gs-scrub b", card);
+    const caps = ["gsap.timeline({ repeat: -1 })", "stagger: { each: 0.035 }", "scrollTrigger: { scrub: true }", "SplitText.create(el, { type: 'chars' })"];
+    const splits = words.map((w) => SplitText.create(w, { type: "chars" }));
+    gsap.set(words, { autoAlpha: 1 });
+    // Each letter starts tipped back 100° around a pivot 24px behind it: a flap
+    splits.forEach((s) => gsap.set(s.chars, { rotationX: -100, yPercent: 30, opacity: 0, transformOrigin: "50% 50% -24px" }));
+    const scrubW = () => $(".gs-scrub", card).clientWidth;
+    const tl = gsap.timeline({ repeat: -1, paused: true, onUpdate() { const p = tl.progress(); fill.style.transform = `scaleX(${p})`; head.style.left = `${p * scrubW()}px`; } });
+    splits.forEach((s, i) => {
+      tl.to(s.chars, { rotationX: 0, yPercent: 0, opacity: 1, duration: 1, ease: "expo.out", stagger: 0.04 }, i ? "-=0.15" : 0)
+        .call(() => { cap.textContent = caps[i]; }, null, "<")
+        .fromTo(cap, { autoAlpha: 0, x: -8 }, { autoAlpha: 1, x: 0, duration: 0.4 }, "<0.1")
+        .to(s.chars, { rotationX: 100, yPercent: -30, opacity: 0, duration: 0.5, ease: "power2.in", stagger: 0.025 }, "+=1.0");
+    });
+    run(card, {
+      start() { tl.play(); }, stop() { tl.pause(); },
+      still() { gsap.set(splits[0].chars, { rotationX: 0, yPercent: 0, opacity: 1 }); cap.textContent = caps[0]; },
+    });
+  });
+}
+</script>
+</body>
+</html>

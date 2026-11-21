@@ -1,0 +1,114 @@
+<!doctype html>
+<!--
+  Template: glow-cards — cards lit by a light that follows the pointer
+  Stack: CSS custom properties + ~15 lines of vanilla JS (no library)
+  Credit: effect popularised by Linear's feature grid and Hyperplexed's CodePen (MWQeYLW).
+          Rewritten from scratch for this repo. MIT.
+  Change: --glow (color), the two radial-gradient radii, card content.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Glow cards</title>
+<script>if (new URLSearchParams(location.search).get("theme") === "light") document.documentElement.classList.add("light");</script>
+<style>
+  :root {
+    --bg: #0b0c0f; --fg: #ecebe6; --muted: #8b8b86;
+    --card: #121318; --edge: rgb(255 255 255 / 0.08);
+    --glow: 215 255 90;               /* r g b, used with alpha below */
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; min-height: 100vh; display: grid; place-items: center; padding: 48px 16px;
+    background: var(--bg); color: var(--fg);
+    font: 16px/1.5 ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  }
+  main { width: min(1040px, 100%); }           /* a grid item shrinks to content otherwise */
+  h1 { font-size: clamp(28px, 4vw, 44px); letter-spacing: -0.02em; margin: 0 0 8px; }
+  .lede { color: var(--muted); margin: 0 0 32px; max-width: 46ch; }
+
+  .cards {
+    display: grid; gap: 8px; width: min(1040px, 100%);
+    grid-template-columns: repeat(auto-fill, minmax(min(280px, 100%), 1fr));
+  }
+  .card {
+    /* Off-screen until the pointer arrives, so nothing glows on load */
+    --mx: -9999px; --my: -9999px;
+    position: relative; min-height: 220px; border-radius: 16px;
+    background: var(--edge);                       /* the 1px border at rest */
+  }
+  .card::before, .card::after {
+    content: ""; position: absolute; inset: 0; border-radius: inherit;
+    pointer-events: none; opacity: 0; transition: opacity 400ms ease;
+  }
+  /* Border light: big, bright, sits UNDER the inner panel, so only the 1px gap shows it */
+  .card::after {
+    z-index: 1;
+    background: radial-gradient(420px circle at var(--mx) var(--my), rgb(var(--glow) / 0.6), transparent 40%);
+  }
+  /* Surface light: soft, sits OVER the panel, only on the hovered card */
+  .card::before {
+    z-index: 3;
+    background: radial-gradient(640px circle at var(--mx) var(--my), rgb(var(--glow) / 0.08), transparent 40%);
+  }
+  .cards:hover .card::after { opacity: 1; }      /* every card's border reacts */
+  .card:hover::before { opacity: 1; }            /* only this card's surface */
+
+  .panel {
+    position: absolute; inset: 1px; z-index: 2; border-radius: 15px;
+    background: var(--card); padding: 24px;
+    display: flex; flex-direction: column; justify-content: flex-end; gap: 6px;
+  }
+  .icon { width: 36px; height: 36px; border-radius: 10px; margin-bottom: auto;
+          display: grid; place-items: center; background: rgb(var(--glow) / 0.1); color: rgb(var(--glow)); }
+  .panel h3 { margin: 0; font-size: 18px; letter-spacing: -0.01em; }
+  .panel p { margin: 0; color: var(--muted); font-size: 14px; }
+
+  /* No hover on touch: show a static lit border instead */
+  @media (hover: none) {
+    .card { background: linear-gradient(160deg, rgb(var(--glow) / 0.35), var(--edge) 45%); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .card::before, .card::after { transition: none; }
+  }
+  /* ?theme=light: warm paper, never pure white; accents one step darker so they keep their contrast */
+  html.light { color-scheme: light; --bg: #f1ede4; --fg: #1c1b18; --muted: #6d695f; --accent: #7da600; --line: #d9d2c3;
+               --card: #f7f4ed; --panel: #e9e3d6; --edge: rgb(40 32 16 / 0.1); --glow: 125 166 0; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Built for the way you ship</h1>
+  <p class="lede">Move the pointer across the grid. One light, every border, no library.</p>
+  <section class="cards" id="cards">
+    <article class="card"><div class="panel"><span class="icon">⌘</span><h3>Command menu</h3><p>Every action two keystrokes away.</p></div></article>
+    <article class="card"><div class="panel"><span class="icon">↻</span><h3>Realtime sync</h3><p>Changes land on every screen in under 50ms.</p></div></article>
+    <article class="card"><div class="panel"><span class="icon">◎</span><h3>Focus mode</h3><p>Hide everything that is not this week.</p></div></article>
+    <article class="card"><div class="panel"><span class="icon">⌥</span><h3>Branch previews</h3><p>A live URL for every pull request.</p></div></article>
+    <article class="card"><div class="panel"><span class="icon">✦</span><h3>Smart triage</h3><p>New issues sorted before you open them.</p></div></article>
+    <article class="card"><div class="panel"><span class="icon">⧉</span><h3>Offline first</h3><p>Works on a plane. Syncs when you land.</p></div></article>
+  </section>
+</main>
+<script>
+  // One listener on the grid. Read all rects first, then write, once per frame.
+  const grid = document.getElementById("cards");
+  const cards = [...grid.querySelectorAll(".card")];
+  let x = 0, y = 0, queued = false;
+
+  grid.addEventListener("pointermove", (e) => {
+    x = e.clientX; y = e.clientY;
+    if (queued) return;
+    queued = true;
+    requestAnimationFrame(() => {
+      queued = false;
+      const rects = cards.map((c) => c.getBoundingClientRect());
+      cards.forEach((c, i) => {
+        c.style.setProperty("--mx", `${x - rects[i].left}px`);
+        c.style.setProperty("--my", `${y - rects[i].top}px`);
+      });
+    });
+  });
+</script>
+</body>
+</html>

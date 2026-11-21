@@ -1,0 +1,31 @@
+{
+  "id": "flow-field-hero",
+  "title": "Flow field hero",
+  "summary": "2,600 particles stream through a drifting noise field in four colours, leaving additive light trails; the pointer (or an idle ghost cursor) stirs a vortex into them.",
+  "category": "background",
+  "group": "canvas",
+  "featured": true,
+  "stack": "Canvas 2D",
+  "libs": [],
+  "useFor": [
+    "hero backgrounds",
+    "landing pages",
+    "generative brand art"
+  ],
+  "tags": [
+    "flow-field",
+    "particles",
+    "trails",
+    "canvas",
+    "vortex"
+  ],
+  "source": {
+    "mode": "original",
+    "author": "web-animation-skill",
+    "url": "https://github.com/yuzhang-ai/web-animation-skill",
+    "license": "MIT"
+  },
+  "check": {
+    "settle": 1600
+  }
+}

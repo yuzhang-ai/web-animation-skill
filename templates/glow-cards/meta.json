@@ -1,0 +1,29 @@
+{
+  "id": "glow-cards",
+  "title": "Glow cards",
+  "summary": "A light follows the pointer across a card grid, lighting every card's 1px border and the hovered card's surface.",
+  "category": "hover",
+  "group": "native",
+  "stack": "CSS variables + vanilla JS",
+  "libs": [],
+  "useFor": [
+    "feature grids",
+    "bento layouts",
+    "pricing cards"
+  ],
+  "tags": [
+    "pointer",
+    "radial-gradient",
+    "border",
+    "linear-style"
+  ],
+  "source": {
+    "mode": "inspired",
+    "author": "Hyperplexed",
+    "url": "https://codepen.io/Hyperplexed/pen/MWQeYLW",
+    "license": "MIT (CodePen public pen)"
+  },
+  "check": {
+    "shot": ".cards"
+  }
+}

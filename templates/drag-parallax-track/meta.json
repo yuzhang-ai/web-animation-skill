@@ -1,0 +1,31 @@
+{
+  "id": "drag-parallax-track",
+  "title": "Drag parallax track",
+  "summary": "Drag a horizontal row of images; the row glides with inertia while each image pans the opposite way inside its frame.",
+  "category": "scroll",
+  "group": "native",
+  "stack": "Web Animations API",
+  "libs": [],
+  "useFor": [
+    "portfolios",
+    "product galleries",
+    "case-study strips"
+  ],
+  "tags": [
+    "drag",
+    "parallax",
+    "gallery",
+    "object-position",
+    "waapi"
+  ],
+  "source": {
+    "mode": "inspired",
+    "author": "Hyperplexed",
+    "url": "https://codepen.io/Hyperplexed/pen/MWXBRBp",
+    "license": "MIT (CodePen public pen)"
+  },
+  "check": {
+    "settle": 600,
+    "shot": "viewport"
+  }
+}
