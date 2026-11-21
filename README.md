@@ -1,9 +1,12 @@
 # Web Animation Skill
 
-**Coding agents can't watch animations. This skill makes them check the frames.**
+**English** · [简体中文](README.zh-CN.md)
+
+**Copy-ready motion for coding agents.** Agents can't watch an animation, so they guess. This skill gives them 29 working templates to start from, a motion spec to time them by, and a way to check the frames before anything ships.
 
 [![skills.sh installs](https://www.skills.sh/b/yuzhang-ai/web-animation-skill)](https://skills.sh/yuzhang-ai/web-animation-skill)
-[![Live showcase](https://img.shields.io/badge/live-showcase-d7ff5a?style=flat-square)](https://yuzhang-ai.github.io/web-animation-skill/)
+[![Live site](https://img.shields.io/badge/live-site-d7ff5a?style=flat-square)](https://yuzhang-ai.github.io/web-animation-skill/)
+[![Templates](https://img.shields.io/badge/templates-29-9a8cff?style=flat-square)](https://yuzhang-ai.github.io/web-animation-skill/templates.html)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue?style=flat-square)](#license)
 
 ```bash
@@ -14,22 +17,24 @@ Works with Claude Code, Codex, Cursor, GitHub Copilot and any agent that reads `
 
 <p align="center">
   <a href="https://yuzhang-ai.github.io/web-animation-skill/">
-    <img src="docs/media/hero.jpg" alt="Showcase hero: the title 'Motion, verified.' over a swirling flow field of 2,600 coloured particles" width="820">
+    <picture>
+      <source media="(prefers-color-scheme: light)" srcset="docs/media/hero-light.jpg">
+      <img src="docs/media/hero.jpg" alt="The site's home page: headline and entry points on the left, a camera touring live template previews on the right" width="860">
+    </picture>
   </a>
 </p>
 <p align="center">
-  <a href="https://yuzhang-ai.github.io/web-animation-skill/">
-    <img src="docs/media/demo.gif" alt="Live demo grid: GSAP MotionPath comet, SplitText 3D flips, Anime.js ripple grid, Motion springs with goo filter, View Transitions, CSS @property ring" width="720">
-  </a>
+  <a href="https://yuzhang-ai.github.io/web-animation-skill/"><img src="docs/media/demo.gif" alt="Tour: the home page camera moving between previews, then the live stack cards" width="720"></a>
   <br>
-  <a href="https://yuzhang-ai.github.io/web-animation-skill/"><b>Live showcase</b></a> · <a href="docs/media/demo.mp4">Full interactive tour (MP4, 26 s)</a> · every card runs the library its rule describes
+  <a href="https://yuzhang-ai.github.io/web-animation-skill/"><b>Open the site</b></a> · <a href="https://yuzhang-ai.github.io/web-animation-skill/templates.html">Template gallery</a> · <a href="docs/media/demo.mp4">Full tour (MP4, 32 s)</a>
 </p>
 
 ## Why
 
-- **It looks before it ships.** In the refine step the agent freezes time with Playwright's `page.clock`, screenshots fixed timestamps (0 / 120 / 240 / 480 ms) and checks them: no first-frame flash, no jumps, no element left at `opacity: 0`, reduced motion still works. Time is frozen, so each frame is exactly the moment it claims to be.
-- **It picks the lightest tool.** CSS, View Transitions and scroll-driven animations first; GSAP, Motion, Anime.js v4, Three.js and 7 more libraries only when the job needs them. Every animation gets a reduced-motion version.
-- **It writes current APIs.** `motion/react` instead of `framer-motion`, the Anime.js v4 API, GSAP plugins that are now free, dotLottie, three.js `setAnimationLoop`.
+- **It starts from something that works.** Before writing an effect, the agent opens [templates/CATALOG.md](templates/CATALOG.md) and adapts the closest of 29 templates: one self-contained page each, with a prompt, the knobs worth changing and the pitfalls, all checked in a real browser. Weaker models copy a good example far better than they invent one.
+- **It moves things on purpose.** The [motion spec](spec/motion.md) says which curve fits which situation (entering, leaving, a hard stop, an overshoot, a spring), how long things take by distance, and how every control state moves.
+- **It looks before it ships.** The agent freezes time with Playwright, screenshots fixed moments and checks them: no first-frame flash, no jumps, nothing left at `opacity: 0`, reduced motion still works.
+- **It writes current APIs.** `motion/react` instead of `framer-motion`, the Anime.js v4 API, GSAP plugins that are now free, COBE 2's `update()`, three.js `setAnimationLoop`.
 
 ## Install
 
@@ -41,31 +46,35 @@ Or copy `SKILL.md`, `rules/`, `templates/` and `spec/` into your agent's skills 
 
 **Pairs well with** GreenSock's official [gsap-skills](https://github.com/greensock/gsap-skills): they go deep on GSAP itself, this skill decides when you need GSAP at all and how to verify the result.
 
-## How it works
+## Templates
 
-`SKILL.md` is the entry point. The agent first looks for a close **template** in [templates/CATALOG.md](templates/CATALOG.md): a self-contained page with a prompt, knobs and pitfalls, already checked in a real browser. It adapts that instead of inventing an effect from nothing, and follows the [motion spec](spec/motion.md) for easing, durations, springs and control states. When no template fits, it uses the workflow, quick picker and the one rule file it needs.
+29 templates across 13 stacks. Every one opens as a live page with Preview / Code / Prompt tabs, in dark or light, in English or Chinese.
 
 | Stack | Templates |
 |---|---|
-| CSS & native APIs (11) | [View transition grid](templates/view-transition-grid/) · [Conic ring](templates/conic-ring/) · [Drag parallax track](templates/drag-parallax-track/) · [Glow cards](templates/glow-cards/) · [Infinite marquee](templates/infinite-marquee/) · [Jelly button](templates/jelly-button/) · [Motion curves](templates/motion-curves/) · [Scroll drum picker](templates/scroll-drum-picker/) · [Shape morph UI](templates/shape-morph-ui/) · [SVG spinners](templates/svg-spinners/) · [Text scramble](templates/text-scramble/) |
-| GSAP (4) | [Motion path timeline](templates/motion-path-timeline/) · [Split-flap words](templates/split-flap-words/) · [Scroll layout flip](templates/scroll-layout-flip/) · [Split text reveal](templates/split-text-reveal/) |
-| Motion (1) | [Spring goo trail](templates/spring-goo-trail/) |
-| Anime.js v4 (1) | [Stagger ripple grid](templates/stagger-ripple-grid/) |
-| Three.js & WebGL (4) | [Iridescent blob](templates/iridescent-blob/) · [Dot globe](templates/dot-globe/) · [Fluid cursor](templates/fluid-cursor/) · [Ink seam transition](templates/seam-transition/) |
-| Canvas 2D (1) | [Flow field hero](templates/flow-field-hero/) |
-| D3 (1) | [Donut transition](templates/donut-transition/) |
-| Lottie (1) | [Lottie like button](templates/lottie-like-button/) |
-| Flubber (1) | [Flubber morph](templates/flubber-morph/) |
-| Two.js (1) | [Vertex blobs](templates/vertex-blobs/) |
-| Konva (1) | [Canvas editor](templates/canvas-editor/) |
-| Proton (1) | [Particle fireworks](templates/particle-fireworks/) |
-| Export (1) | [GIF export](templates/gif-export/) |
+| CSS & native APIs (11) | [View transition grid](https://yuzhang-ai.github.io/web-animation-skill/t/view-transition-grid.html) · [Conic ring](https://yuzhang-ai.github.io/web-animation-skill/t/conic-ring.html) · [Drag parallax track](https://yuzhang-ai.github.io/web-animation-skill/t/drag-parallax-track.html) · [Glow cards](https://yuzhang-ai.github.io/web-animation-skill/t/glow-cards.html) · [Infinite marquee](https://yuzhang-ai.github.io/web-animation-skill/t/infinite-marquee.html) · [Jelly button](https://yuzhang-ai.github.io/web-animation-skill/t/jelly-button.html) · [Motion curves](https://yuzhang-ai.github.io/web-animation-skill/t/motion-curves.html) · [Scroll drum picker](https://yuzhang-ai.github.io/web-animation-skill/t/scroll-drum-picker.html) · [Shape morph UI](https://yuzhang-ai.github.io/web-animation-skill/t/shape-morph-ui.html) · [SVG spinners](https://yuzhang-ai.github.io/web-animation-skill/t/svg-spinners.html) · [Text scramble](https://yuzhang-ai.github.io/web-animation-skill/t/text-scramble.html) |
+| GSAP (4) | [Motion path timeline](https://yuzhang-ai.github.io/web-animation-skill/t/motion-path-timeline.html) · [Split-flap words](https://yuzhang-ai.github.io/web-animation-skill/t/split-flap-words.html) · [Scroll layout flip](https://yuzhang-ai.github.io/web-animation-skill/t/scroll-layout-flip.html) · [Split text reveal](https://yuzhang-ai.github.io/web-animation-skill/t/split-text-reveal.html) |
+| Motion (1) | [Spring goo trail](https://yuzhang-ai.github.io/web-animation-skill/t/spring-goo-trail.html) |
+| Anime.js v4 (1) | [Stagger ripple grid](https://yuzhang-ai.github.io/web-animation-skill/t/stagger-ripple-grid.html) |
+| Three.js & WebGL (4) | [Iridescent blob](https://yuzhang-ai.github.io/web-animation-skill/t/iridescent-blob.html) · [Dot globe](https://yuzhang-ai.github.io/web-animation-skill/t/dot-globe.html) · [Fluid cursor](https://yuzhang-ai.github.io/web-animation-skill/t/fluid-cursor.html) · [Ink seam transition](https://yuzhang-ai.github.io/web-animation-skill/t/seam-transition.html) |
+| Canvas 2D (1) | [Flow field hero](https://yuzhang-ai.github.io/web-animation-skill/t/flow-field-hero.html) |
+| D3 (1) | [Donut transition](https://yuzhang-ai.github.io/web-animation-skill/t/donut-transition.html) |
+| Lottie (1) | [Lottie like button](https://yuzhang-ai.github.io/web-animation-skill/t/lottie-like-button.html) |
+| Flubber (1) | [Flubber morph](https://yuzhang-ai.github.io/web-animation-skill/t/flubber-morph.html) |
+| Two.js (1) | [Vertex blobs](https://yuzhang-ai.github.io/web-animation-skill/t/vertex-blobs.html) |
+| Konva (1) | [Canvas editor](https://yuzhang-ai.github.io/web-animation-skill/t/canvas-editor.html) |
+| Proton (1) | [Particle fireworks](https://yuzhang-ai.github.io/web-animation-skill/t/particle-fireworks.html) |
+| Export (1) | [GIF export](https://yuzhang-ai.github.io/web-animation-skill/t/gif-export.html) |
 
-Browse them live on the [templates page](https://yuzhang-ai.github.io/web-animation-skill/templates.html). Adapted and inspired sources are credited in [THIRD_PARTY.md](THIRD_PARTY.md).
+Browse them in the [gallery](https://yuzhang-ai.github.io/web-animation-skill/templates.html). Adapted and inspired sources are credited in [THIRD_PARTY.md](THIRD_PARTY.md).
+
+## How it works
+
+`SKILL.md` is the entry point. The agent looks for a close template first and follows the motion spec for timing. When nothing fits, it builds the effect with the workflow below and the one rule file it needs.
 
 ```
 Brief    → one-line motion spec per element (+ its reduced-motion version)
-Build    → lightest tool that does the job: CSS / native first, then a library
+Build    → closest template, else the lightest tool: CSS / native first, then a library
 Animate  → transform & opacity, shared duration/easing tokens, interruptible
 Refine   → capture frames at key timestamps and look at them; check perf
 Render   → lazy-load, pause off-screen, export GIF/MP4 when asked
@@ -96,30 +105,22 @@ Render   → lazy-load, pause off-screen, export GIF/MP4 when asked
 | | [proton](rules/proton.md) | Particle emitters, initializers, behaviours |
 | | [three-js](rules/three-js.md) | Scenes, R3F, WebGPU, tweening 3D objects |
 
-## What's new in v2
+## Site and tooling
 
-- **Current APIs.** These snippets would break if written the old way, so the skill now uses:
-  - `framer-motion` → `motion` (`motion/react`), with Motion One merged in
-  - Anime.js v4 rewrite
-  - GSAP plugins now free, plus `useGSAP`
-  - `@lottiefiles/dotlottie-react`
-  - `THREE.Timer` and `setAnimationLoop`
-- **Workflow first.** Agents can't watch animations, so the skill tells them how to verify one with captured frames.
-- **New rules:** workflow, accessibility, native APIs, export, Proton, Two.js.
-- **Showcase page** ([`docs/index.html`](docs/index.html)): a single static file that loads every library from jsDelivr and honours reduced motion. Highlights:
-  - a flow-field hero with 2,600 particles
-  - a noise-displaced iridescent shader sphere
-  - spring chains fused by an SVG goo filter
-  - a draggable verlet rope
-  - Flubber one-to-many morphs
-  - firework emitters
-  - a CSS `view()` 3D drum picker
+The site is [docs/](docs/) (home, gallery) plus [templates/](templates/) plus one generated page per template and language. Every push to `master` that touches them redeploys it through [.github/workflows/pages.yml](.github/workflows/pages.yml).
 
-## Showcase page
+| Command | What it does |
+|---|---|
+| `node scripts/build-catalog.mjs` | Rebuilds `templates/catalog.json`, `CATALOG.md` and `THIRD_PARTY.md` from each `meta.json` |
+| `node scripts/build-site.mjs` | Assembles `_site/`, exactly what Pages deploys |
+| `node scripts/check-templates.mjs` | Opens every template in Chromium: console errors, mobile overflow, reduced motion |
+| `node scripts/check-site.mjs` | Whole-page pass of the site in both languages and themes |
+| `node scripts/record-previews.mjs` | Records each template's preview video in both themes |
+| `node scripts/record-readme.mjs` | Re-shoots the images and tour on this page |
 
-`docs/index.html` is self-contained. To run it locally, serve the folder (`python -m http.server 8000 --directory docs`). Every push to `master` that touches `docs/` redeploys it to GitHub Pages through [`.github/workflows/pages.yml`](.github/workflows/pages.yml).
+The checks need Playwright (`npm i -D playwright`) and the recorders need ffmpeg.
 
-Regenerate the README media by recording the page (the deterministic method is in [export.md](rules/export.md)) and encoding it with ffmpeg.
+**Adding a template:** create `templates/<id>/` with `index.html`, `prompt.md` (Effect, Use it for, a fenced Prompt, Knobs, Pitfalls) and `meta.json`, add its Chinese copy to `templates/i18n.zh.json`, then run the catalog, check and record scripts.
 
 ## Scope
 
