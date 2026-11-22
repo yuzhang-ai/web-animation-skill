@@ -52,16 +52,39 @@ const ICON = {
   sun: '<svg class="sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>',
 };
 
-export function head({ title, description, base = "", lang = "en", alt = null }) {
+export const SITE = "https://yuzhang-ai.github.io/web-animation-skill/";
+// Link-preview tags (X, Slack, WeChat…): crawlers don't run JS, so everything is static and absolute
+function social({ title, description, url, image, imageW, imageH, imageAlt, lang }) {
+  return `
+<link rel="canonical" href="${url}">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Web Animation Skill">
+<meta property="og:locale" content="${lang === "zh" ? "zh_CN" : "en_US"}">
+<meta property="og:title" content="${esc(title)}">
+<meta property="og:description" content="${esc(description)}">
+<meta property="og:url" content="${url}">
+<meta property="og:image" content="${image}">
+<meta property="og:image:width" content="${imageW}">
+<meta property="og:image:height" content="${imageH}">
+<meta property="og:image:alt" content="${esc(imageAlt)}">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="${esc(title)}">
+<meta name="twitter:description" content="${esc(description)}">
+<meta name="twitter:image" content="${image}">
+<meta name="twitter:image:alt" content="${esc(imageAlt)}">`;
+}
+
+export function head({ title, description, base = "", lang = "en", alt = null, og = null }) {
   return `<meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>${esc(title)}</title>
-<meta name="description" content="${esc(description)}">
+<meta name="description" content="${esc(description)}">${og ? social({ title, description, lang, ...og }) : ""}
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 32 32%22%3E%3Crect width=%2232%22 height=%2232%22 rx=%228%22 fill=%22%230b0c0e%22/%3E%3Ccircle cx=%2216%22 cy=%2216%22 r=%227%22 fill=%22%23d7ff5a%22/%3E%3C/svg%3E">
 <script>(() => { const r = document.documentElement; let t, l; try { t = localStorage.getItem("theme"); l = localStorage.getItem("lang"); } catch {}
   r.dataset.theme = t || (matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark");
   ${alt ? `if (l && l !== "${lang}") location.replace("${alt}"); /* only follow an explicit choice: a shared link opens as sent */` : ""} })();</script>
-${alt ? `<link rel="alternate" hreflang="${lang === "zh" ? "en" : "zh-CN"}" href="${alt}"><link rel="alternate" hreflang="${lang === "zh" ? "zh-CN" : "en"}" href="${alt.replace(/(\.zh)?\.html$/, "") + (lang === "zh" ? ".zh" : "") + ".html"}">` : ""}
+${alt ? `<link rel="alternate" hreflang="${lang === "zh" ? "en" : "zh-CN"}" href="${alt}"><link rel="alternate" hreflang="${lang === "zh" ? "zh-CN" : "en"}" href="${alt.replace(/(\.zh)?\.html$/, "") + (lang === "zh" ? ".zh" : "") + ".html"}">` : ""}<!-- keep: the in-page language switch reads these two links -->
+<meta name="theme-color" content="#0b0c0e">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -184,7 +207,9 @@ export function templatePage(t, all, groups, src, md, lang = "en") {
   return `<!doctype html>
 <html lang="${zh ? "zh-CN" : "en"}">
 <head>
-${head({ title: `${T(t)} · ${GN(g)} ${S.template} · Web Animation Skill`, description: z ? z.summary : t.summary, base: "../", lang, alt: `${t.id}${zh ? "" : ".zh"}.html` })}
+${head({ title: `${T(t)} · ${GN(g)} ${S.template} · Web Animation Skill`, description: z ? z.summary : t.summary, base: "../", lang, alt: `${t.id}${zh ? "" : ".zh"}.html`,
+  og: { url: `${SITE}t/${t.id}${sfx}.html`, image: `${SITE}templates/${t.id}/preview.jpg`, imageW: 800, imageH: 500,
+        imageAlt: zh ? `${T(t)}模板预览` : `${t.title} template preview` } })}
 <style>${PAGE_CSS}</style>
 </head>
 <body data-static="true">

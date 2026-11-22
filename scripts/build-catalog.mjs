@@ -57,7 +57,7 @@ const items = readdirSync(dir, { withFileTypes: true })
     if (!CATEGORIES.includes(meta.category)) throw new Error(`${d.name}: unknown category "${meta.category}"`);
     if (!GROUPS.some((g) => g.id === meta.group)) throw new Error(`${d.name}: unknown group "${meta.group}"`);
     // The copyable prompt is the first fenced block under "## Prompt"
-    const md = readFileSync(join(dir, d.name, "prompt.md"), "utf8");
+    const md = readFileSync(join(dir, d.name, "prompt.md"), "utf8").replace(/\r\n/g, "\n");   // Windows checkouts are CRLF
     const block = md.split(/^## Prompt\s*$/m)[1]?.match(/```[a-z]*\n([\s\S]*?)```/);
     if (!block) throw new Error(`${d.name}/prompt.md: no fenced block under "## Prompt"`);
     return {

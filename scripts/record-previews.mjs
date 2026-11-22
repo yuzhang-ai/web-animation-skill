@@ -1,12 +1,14 @@
 // Records short looping preview videos for each template, in both themes:
 //   templates/<id>/preview.mp4 + preview.jpg              (dark)
 //   templates/<id>/preview-light.mp4 + preview-light.jpg  (?theme=light)
-// The .jpg posters are taken from the videos, so a poster always matches its video.
+// The .jpg posters are taken from the videos, so a poster always matches its video: the busiest frame
+// (largest JPEG = most detail), because it doubles as the link-preview image of the template's page.
 //   node scripts/record-previews.mjs [template-id ...]
+//   node scripts/record-previews.mjs --posters [template-id ...]   re-pick posters from existing videos only
 // Needs playwright (or playwright-core) and ffmpeg on PATH. Optional env: CHROME_PATH.
 // While recording it moves the pointer in a figure-eight, and clicks or scrolls when the
 // template's meta.json asks for it (check.click / check.scroll), so hover effects show.
-import { readdirSync, existsSync, readFileSync, mkdtempSync, rmSync } from "node:fs";
+import { readdirSync, existsSync, readFileSync, mkdtempSync, rmSync, statSync, copyFileSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { tmpdir } from "node:os";
 import { execFileSync } from "node:child_process";
@@ -17,9 +19,27 @@ const require = createRequire(import.meta.url);
 const pw = (() => { for (const m of ["playwright", "playwright-core"]) try { return require(m); } catch {} console.error("npm i -D playwright"); process.exit(1); })();
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const tdir = join(root, "templates");
-const only = process.argv.slice(2);
+const postersOnly = process.argv.includes("--posters");
+const only = process.argv.slice(2).filter((a) => !a.startsWith("--"));
 const ids = readdirSync(tdir, { withFileTypes: true }).filter((d) => d.isDirectory() && existsSync(join(tdir, d.name, "index.html")))
   .map((d) => d.name).filter((id) => !only.length || only.includes(id));
+
+// Pick the frame with the most detail (largest JPEG) as the poster
+function poster(video, jpg) {
+  const tmp = mkdtempSync(join(tmpdir(), "poster-"));
+  execFileSync("ffmpeg", ["-loglevel", "error", "-y", "-ss", "0.5", "-i", video, "-vf", "fps=10/3", "-q:v", "3", join(tmp, "f%03d.jpg")]);
+  const best = readdirSync(tmp).map((f) => ({ f, size: statSync(join(tmp, f)).size })).sort((a, b) => b.size - a.size)[0];
+  copyFileSync(join(tmp, best.f), jpg);
+  rmSync(tmp, { recursive: true, force: true });
+}
+if (postersOnly) {
+  for (const id of ids) for (const sfx of ["", "-light"]) {
+    const v = join(tdir, id, `preview${sfx}.mp4`);
+    if (existsSync(v)) poster(v, join(tdir, id, `preview${sfx}.jpg`));
+  }
+  console.log(`posters: ${ids.length} templates`);
+  process.exit(0);
+}
 
 const VW = 1280, VH = 800, SECONDS = 5;
 const browser = await pw.chromium.launch({ executablePath: process.env.CHROME_PATH || undefined, args: ["--use-angle=d3d11", "--enable-gpu", "--ignore-gpu-blocklist"] });
@@ -69,7 +89,7 @@ for (const id of ids) for (const theme of ["dark", "light"]) {
   execFileSync("ffmpeg", ["-loglevel", "error", "-y", "-ss", String(startAt + 0.2), "-t", String(SECONDS - 0.4), "-i", src,
     "-vf", `crop=${even(clip.w)}:${even(clip.h)}:${even(clip.x)}:${even(clip.y)},scale=800:500:flags=lanczos,fps=30`,
     "-c:v", "libx264", "-preset", "slow", "-crf", "30", "-pix_fmt", "yuv420p", "-movflags", "+faststart", "-an", out]);
-  execFileSync("ffmpeg", ["-loglevel", "error", "-y", "-ss", "1.6", "-i", out, "-frames:v", "1", "-q:v", "4", join(tdir, id, `preview${suffix}.jpg`)]);
+  poster(out, join(tdir, id, `preview${suffix}.jpg`));
   rmSync(tmp, { recursive: true, force: true });
   console.log("rec", id, theme);
 }
